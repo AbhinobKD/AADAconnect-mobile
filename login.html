@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AADA - Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+      color: #00d4ff;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #00d4ff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    input::placeholder {
+      color: #64748b;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(90deg, #00ff88 0%, #00d4ff 100%);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .error {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    .info {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+
+    .account-info {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .account-info .email {
+      color: #00ff88;
+      font-weight: 600;
+      margin: 0.3rem 0;
+    }
+
+    .clear-link {
+      color: #ef4444;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .clear-link:hover {
+      color: #dc2626;
+      text-decoration: underline;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a1a2e;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-title {
+      color: #00d4ff;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-message {
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-email {
+      color: #00ff88;
+      font-weight: 600;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn-primary {
+      background: linear-gradient(90deg, #00ff88 0%, #00d4ff 100%);
+      color: #000;
+    }
+
+    .modal-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+    }
+
+    .modal-btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>AADA Smart Plug</h1>
+    <p class="subtitle">Login or Create New Account</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="your@email.com" 
+          required
+        >
+        <div class="error" id="emailError">Please enter a valid email</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Enter your password" 
+          required
+        >
+        <div class="error" id="passwordError">Please enter a password</div>
+      </div>
+
+      <div class="error" id="loginError"></div>
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <div class="info">
+      First time? We'll create an account for you automatically
+    </div>
+
+    <div class="account-info" id="accountInfo" style="display: none;">
+      <div>Currently saved account:</div>
+      <div class="email" id="savedEmail"></div>
+      <a class="clear-link" onclick="clearAccount()">Clear saved account</a>
+    </div>
+  </div>
+
+  <!-- Account Switch Modal -->
+  <div class="modal" id="switchModal">
+    <div class="modal-content">
+      <h2 class="modal-title">Account Switch</h2>
+      <p class="modal-message">
+        An account (<span class="modal-email" id="existingEmail"></span>) is already saved. 
+        Do you want to switch to the new account?
+      </p>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-secondary" onclick="cancelSwitch()">
+          Cancel
+        </button>
+        <button class="modal-btn modal-btn-primary" onclick="confirmSwitch()">
+          Switch Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script>
+    let pendingAccount = null;
+
+    // Simple hash function using CryptoJS SHA256
+    function hashValue(value) {
+      return CryptoJS.SHA256(value).toString(CryptoJS.enc.Hex);
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const loginError = document.getElementById('loginError');
+
+      // Reset errors
+      emailError.style.display = 'none';
+      passwordError.style.display = 'none';
+      loginError.style.display = 'none';
+
+      // Validate
+      if (!email || !password) {
+        if (!email) emailError.style.display = 'block';
+        if (!password) passwordError.style.display = 'block';
+        return;
+      }
+
+      // Hash the credentials
+      const hashedEmail = hashValue(email);
+      const hashedPassword = hashValue(password);
+
+      // Create account key
+      const accountKey = hashedEmail + '|' + hashedPassword;
+      
+      // Check if account exists
+      const existingAccount = localStorage.getItem('aada_account');
+      const existingEmail = localStorage.getItem('aada_email');
+
+      if (!existingAccount) {
+        // New account - save credentials and login
+        saveAccount(email, password, hashedEmail, hashedPassword);
+        loginUser(email, password, hashedEmail, hashedPassword);
+        alert('Account created successfully!');
+        window.location.href = 'dashboard.html';
+      } else if (existingAccount === accountKey) {
+        // Existing account - credentials match, just login
+        loginUser(email, password, hashedEmail, hashedPassword);
+        window.location.href = 'dashboard.html';
+      } else {
+        // Different account - ask if they want to switch
+        pendingAccount = {
+          email: email,
+          password: password,
+          hashedEmail: hashedEmail,
+          hashedPassword: hashedPassword
+        };
+        
+        document.getElementById('existingEmail').textContent = existingEmail;
+        document.getElementById('switchModal').classList.add('active');
+      }
+    }
+
+    // Save account to localStorage
+    function saveAccount(email, password, hashedEmail, hashedPassword) {
+      const accountKey = hashedEmail + '|' + hashedPassword;
+      localStorage.setItem('aada_account', accountKey);
+      localStorage.setItem('aada_email', email);
+      localStorage.setItem('aada_password', password);
+      localStorage.setItem('aada_hashed_email', hashedEmail);
+      localStorage.setItem('aada_hashed_password', hashedPassword);
+    }
+
+    // Login user (set session)
+    function loginUser(email, password, hashedEmail, hashedPassword) {
+      sessionStorage.setItem('current_user', JSON.stringify({
+        email: email,
+        password: password,
+        hashed_email: hashedEmail,
+        hashed_password: hashedPassword
+      }));
+    }
+
+    // Clear all account data
+    function clearAllAccountData() {
+      localStorage.removeItem('aada_account');
+      localStorage.removeItem('aada_email');
+      localStorage.removeItem('aada_password');
+      localStorage.removeItem('aada_hashed_email');
+      localStorage.removeItem('aada_hashed_password');
+      sessionStorage.clear();
+    }
+
+    // Confirm account switch
+    function confirmSwitch() {
+      if (!pendingAccount) return;
+
+      // Clear old account data
+      clearAllAccountData();
+
+      // Save and login with new account
+      saveAccount(
+        pendingAccount.email,
+        pendingAccount.password,
+        pendingAccount.hashedEmail,
+        pendingAccount.hashedPassword
+      );
+
+      loginUser(
+        pendingAccount.email,
+        pendingAccount.password,
+        pendingAccount.hashedEmail,
+        pendingAccount.hashedPassword
+      );
+
+      // Close modal and redirect
+      document.getElementById('switchModal').classList.remove('active');
+      pendingAccount = null;
+      
+      alert('Account switched successfully!');
+      window.location.href = 'dashboard.html';
+    }
+
+    // Cancel account switch
+    function cancelSwitch() {
+      document.getElementById('switchModal').classList.remove('active');
+      pendingAccount = null;
+      
+      const loginError = document.getElementById('loginError');
+      loginError.textContent = 'Please use the saved account or clear it to create a new one';
+      loginError.style.display = 'block';
+    }
+
+    // Clear saved account
+    function clearAccount() {
+      const savedEmail = localStorage.getItem('aada_email');
+      
+      if (!savedEmail) {
+        alert('No account saved to clear');
+        return;
+      }
+      
+      if (confirm(`Are you sure you want to clear the saved account (${savedEmail})? This will log you out.`)) {
+        clearAllAccountData();
+        location.reload();
+      }
+    }
+
+    // Show saved account info if exists
+    function showAccountInfo() {
+      const savedEmail = localStorage.getItem('aada_email');
+      if (savedEmail) {
+        document.getElementById('savedEmail').textContent = savedEmail;
+        document.getElementById('accountInfo').style.display = 'block';
+      }
+    }
+
+    // Check if already logged in
+    window.onload = function() {
+      const currentUser = sessionStorage.getItem('current_user');
+      if (currentUser) {
+        window.location.href = 'dashboard.html';
+      }
+      
+      // Show account info if exists
+      showAccountInfo();
+    };
+  </script>
+</body>
+</html>

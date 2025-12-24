@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AADA - WiFi Setup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .setup-container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+      color: #00d4ff;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    .info-box {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-box h3 {
+      color: #00d4ff;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .device-code {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #00ff88;
+      text-align: center;
+      padding: 0.5rem;
+      background: rgba(0, 255, 136, 0.1);
+      border-radius: 6px;
+      letter-spacing: 2px;
+    }
+
+    .instructions {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .instructions h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+    }
+
+    .instructions ol {
+      margin-left: 1.5rem;
+      line-height: 1.8;
+      color: #94a3b8;
+    }
+
+    .instructions li {
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #00d4ff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    input::placeholder {
+      color: #64748b;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    button {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #00ff88 0%, #00d4ff 100%);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .status-message {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+
+    .status-info {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: #00d4ff;
+    }
+
+    .status-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <h1>WiFi Setup</h1>
+    <p class="subtitle">Configure your AADA Smart Plug</p>
+
+    <div class="info-box">
+      <h3>Your Device Code</h3>
+      <div class="device-code" id="deviceCode">Loading...</div>
+    </div>
+
+    <div class="instructions">
+      <h3>Setup Instructions:</h3>
+      <ol>
+        <li>Connect to the WiFi network: <strong>AADA-Plug</strong></li>
+        <li>Enter your home WiFi credentials below</li>
+        <li>Click "Configure Device" to send settings</li>
+        <li>Wait for the device to connect to your network</li>
+      </ol>
+    </div>
+
+    <form id="wifiForm" onsubmit="sendCredentials(event)">
+      <div class="form-group">
+        <label for="ssid">WiFi Network Name (SSID)</label>
+        <input 
+          type="text" 
+          id="ssid" 
+          placeholder="Enter your WiFi name" 
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="wifiPassword">WiFi Password</label>
+        <input 
+          type="password" 
+          id="wifiPassword" 
+          placeholder="Enter your WiFi password" 
+          required
+        >
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="goBack()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary" id="submitBtn">
+          Configure Device
+        </button>
+      </div>
+    </form>
+
+    <div class="status-message" id="statusMessage"></div>
+  </div>
+
+  <script>
+    let provisioningData = null;
+
+    // Initialize
+    function init() {
+      const provStr = sessionStorage.getItem('provisioning');
+      if (!provStr) {
+        alert('No device to configure');
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      provisioningData = JSON.parse(provStr);
+      document.getElementById('deviceCode').textContent = provisioningData.device_id;
+    }
+
+    // Send credentials to ESP32
+    function sendCredentials(event) {
+      event.preventDefault();
+
+      const ssid = document.getElementById('ssid').value.trim();
+      const wifiPassword = document.getElementById('wifiPassword').value;
+      const statusMessage = document.getElementById('statusMessage');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (!ssid || !wifiPassword) {
+        showStatus('Please fill in all fields', 'error');
+        return;
+      }
+
+      // Prepare payload to send to ESP32
+      const payload = {
+        ssid: ssid,
+        pass: wifiPassword,
+        hashed_email: provisioningData.hashed_email,
+        hashed_password: provisioningData.hashed_password,
+        device_id: provisioningData.device_id
+      };
+
+      console.log('Sending payload:', payload);
+
+      // Disable button
+      submitBtn.disabled = true;
+      showStatus('Sending configuration to device...', 'info');
+
+      // Send to ESP32 (assumed to be at 192.168.4.1)
+      fetch('http://192.168.4.1/prov', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        timeout: 10000
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.text();
+        }
+        throw new Error('Failed to configure device');
+      })
+      .then(data => {
+        console.log('Response:', data);
+        showStatus('Device configured successfully! Connecting to network...', 'success');
+        
+        // Clear provisioning data
+        sessionStorage.removeItem('provisioning');
+        
+        // Redirect to dashboard after delay
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        },0);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showStatus('Failed to configure device. Make sure you are connected to AADA-Plug WiFi.', 'error');
+        submitBtn.disabled = false;
+      });
+    }
+
+    // Show status message
+    function showStatus(message, type) {
+      const statusMessage = document.getElementById('statusMessage');
+      statusMessage.textContent = message;
+      statusMessage.className = 'status-message status-' + type;
+      statusMessage.style.display = 'block';
+    }
+
+    // Go back to dashboard
+    function goBack() {
+      if (confirm('Are you sure? Device setup will be cancelled.')) {
+        sessionStorage.removeItem('provisioning');
+        window.location.href = 'dashboard.html';
+      }
+    }
+
+    // Initialize on load
+    window.onload = init;
+  </script>
+</body>
+</html>
