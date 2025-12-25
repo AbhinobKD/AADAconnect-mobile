@@ -99,7 +99,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    /* New theme toggle button matching dashboard.html style */
     .theme-toggle-btn {
       width: 44px;
       height: 44px;
@@ -168,8 +167,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
-      font-weight: 800;
       cursor: pointer;
       position: relative;
       transition: var(--transition);
@@ -187,6 +184,13 @@
       border-radius: 50%;
       opacity: 0.4;
       transition: var(--transition);
+    }
+
+    /* Power symbol size */
+    .power-symbol {
+      font-size: 5.5rem;
+      font-weight: 300;
+      letter-spacing: -4px;
     }
 
     .power-on {
@@ -269,7 +273,9 @@
       .power-display {
         width: 200px;
         height: 200px;
-        font-size: 2.8rem;
+      }
+      .power-symbol {
+        font-size: 5rem;
       }
       .title { font-size: 1.8rem; }
       body { padding: 2rem 1rem; }
@@ -280,7 +286,9 @@
       .power-display {
         width: 180px;
         height: 180px;
-        font-size: 2.5rem;
+      }
+      .power-symbol {
+        font-size: 4.5rem;
       }
     }
   </style>
@@ -289,7 +297,6 @@
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
     
-    <!-- Theme toggle button copied from dashboard.html -->
     <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/>
@@ -303,7 +310,8 @@
     <div class="device-id" id="deviceId">Loading...</div>
 
     <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
-      <span id="powerText">---</span>
+      <!-- Power symbol instead of text -->
+      <span class="power-symbol" id="powerText">⏻</span>
     </div>
 
     <div class="status-text status-unknown" id="statusText">Connecting...</div>
@@ -401,24 +409,24 @@
 
     function updateDeviceStatus(status) {
       const powerDisplay = document.getElementById('powerDisplay');
-      const powerText = document.getElementById('powerText');
+      const powerSymbol = document.getElementById('powerText');
       const statusText = document.getElementById('statusText');
 
       currentStatus = status;
 
       if (status === 'ON') {
         powerDisplay.className = 'power-display power-on';
-        powerText.textContent = 'ON';
+        powerSymbol.textContent = '⏻';  // Power symbol stays the same
         statusText.textContent = 'Device is ON';
         statusText.className = 'status-text status-on';
       } else if (status === 'OFF') {
         powerDisplay.className = 'power-display power-off';
-        powerText.textContent = 'OFF';
+        powerSymbol.textContent = '⏻';  // Power symbol stays the same
         statusText.textContent = 'Device is OFF';
         statusText.className = 'status-text status-off';
       } else {
         powerDisplay.className = 'power-display power-unknown';
-        powerText.textContent = '---';
+        powerSymbol.textContent = '⏻';  // Power symbol for unknown too
         statusText.textContent = 'Status Unknown';
         statusText.className = 'status-text status-unknown';
       }
