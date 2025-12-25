@@ -99,51 +99,25 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    /* Fixed theme toggle container */
-    .theme-toggle-wrapper {
+    /* New non-sliding theme button (sun/moon icon) */
+    .theme-button {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--container-border);
-      border-radius: 20px;
-      padding: 0.6rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       transition: var(--transition);
+      font-size: 1.4rem;
     }
 
-    .theme-toggle {
-      cursor: pointer;
-      display: block;
-    }
-
-    .theme-switch {
-      position: relative;
-      width: 56px;
-      height: 30px;
-      background: var(--unknown-color);
-      border-radius: 30px;
-      transition: var(--transition);
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .theme-switch::before {
-      content: '';
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 24px;
-      height: 24px;
-      background: var(--text-color);
-      border-radius: 50%;
-      transition: var(--transition);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    input:checked + .theme-switch {
-      background: var(--on-primary);
-    }
-
-    input:checked + .theme-switch::before {
-      transform: translateX(26px);
+    .theme-button:active {
+      transform: scale(0.92);
     }
 
     .main-content {
@@ -304,13 +278,10 @@
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
     
-    <!-- New wrapper with background and padding to keep it fully visible -->
-    <div class="theme-toggle-wrapper">
-      <label class="theme-toggle" aria-label="Toggle dark/light mode">
-        <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()" style="display: none;">
-        <span class="theme-switch"></span>
-      </label>
-    </div>
+    <!-- Non-sliding theme button with sun/moon icon -->
+    <button class="theme-button" id="themeButton" onclick="toggleTheme()" aria-label="Toggle dark/light mode">
+      🌙
+    </button>
   </div>
 
   <div class="main-content">
@@ -454,27 +425,31 @@
 
     function toggleTheme() {
       const body = document.body;
-      const checkbox = document.getElementById('themeCheckbox');
-      if (checkbox.checked) {
-        body.classList.add('light-mode');
+      const button = document.getElementById('themeButton');
+
+      if (body.classList.contains('dark-mode')) {
         body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+        button.textContent = '☀️';
         localStorage.setItem('theme', 'light');
       } else {
-        body.classList.add('dark-mode');
         body.classList.remove('light-mode');
+        body.classList.add('dark-mode');
+        button.textContent = '🌙';
         localStorage.setItem('theme', 'dark');
       }
     }
 
     function loadTheme() {
       const savedTheme = localStorage.getItem('theme');
-      const checkbox = document.getElementById('themeCheckbox');
+      const button = document.getElementById('themeButton');
+
       if (savedTheme === 'light') {
-        checkbox.checked = true;
         document.body.classList.add('light-mode');
+        button.textContent = '☀️';
       } else {
-        checkbox.checked = false;
         document.body.classList.add('dark-mode');
+        button.textContent = '🌙';
       }
     }
 
