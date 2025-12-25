@@ -874,7 +874,7 @@
       updateIntensityDisplay();
       saveHapticsSettings();
       
-      // Trigger haptic at current intensity so user can feel the change immediately
+      // Trigger haptic at current intensity
       hapticFeedback(value);
     });
 
@@ -897,10 +897,6 @@
       document.getElementById('userEmail').textContent = currentUser.email;
       connectMQTT();
 
-      deviceListTimeout = setTimeout(() => {
-        if (devices.length === 0) renderDevices(); // Show no devices if timeout reached
-      }, 5000);
-
       // Attach haptics to all interactive buttons
       addHapticToElement(document.getElementById('themeToggleBtn'), toggleTheme);
       addHapticToElement(document.getElementById('moreOptionsBtn'), showActionSheet);
@@ -922,29 +918,51 @@
           console.log('MQTT Connected');
           statusIndicator.className = 'status-dot connected';
           const fetchTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/fetch`;
-          mqttClient.subscribe(fetchTopic);
+          mqttClient.subscribe(fetchTopic, (err) => {
+            if (err) {
+              console.error('Subscribe error:', err);
+            } else {
+              console.log('Subscribed to:', fetchTopic);
+              console.log('Waiting for retained message with device list...');
+              
+              // Set timeout - if no device list received in 5 seconds, show no devices
+              deviceListTimeout = setTimeout(() => {
+                if (devices.length === 0) {
+                  console.log('No device list received - showing empty state');
+                  renderDevices();
+                }
+              }, 5000); // 5 second timeout
+            }
+          });
         });
 
-        mqttClient.on('message', (topic, message) => handleMQTTMessage(topic, message));
+        mqttClient.on('message', (topic, message) => {
+          console.log('Message received:', topic, message.toString());
+          handleMQTTMessage(topic, message);
+        });
 
         mqttClient.on('error', (err) => {
           console.error('MQTT Error:', err);
           statusIndicator.className = 'status-dot disconnected';
-          // On error, render no devices if no data
-          if (devices.length === 0) renderDevices();
+          // On error, if no devices, show empty state
+          if (devices.length === 0) {
+            renderDevices();
+          }
         });
 
         mqttClient.on('close', () => {
           console.log('MQTT Disconnected');
           statusIndicator.className = 'status-dot disconnected';
-          // On close, render no devices if no data
-          if (devices.length === 0) renderDevices();
+          // On close, if no devices, show empty state
+          if (devices.length === 0) {
+            renderDevices();
+          }
         });
 
       } catch (error) {
         console.error('MQTT Connection failed:', error);
         statusIndicator.className = 'status-dot disconnected';
-        // On connection failure, render no devices
+        // On connection failure, show empty state
         renderDevices();
       }
     }
@@ -958,8 +976,10 @@
           devices = data.device_list;
           renderDevices();
           devices.forEach(device => {
-            mqttClient.subscribe(`smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${device.device_id}/status`);
-            mqttClient.subscribe(`smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${device.device_id}/OF`);
+            const statusTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${device.device_id}/status`;
+            mqttClient.subscribe(statusTopic);
+            const ofTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${device.device_id}/OF`;
+            mqttClient.subscribe(ofTopic);
           });
           setTimeout(checkAllDevicesStatus, 500);
         }
