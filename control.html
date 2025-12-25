@@ -186,11 +186,10 @@
       transition: var(--transition);
     }
 
-    /* Power symbol size */
-    .power-symbol {
-      font-size: 5.5rem;
-      font-weight: 300;
-      letter-spacing: -4px;
+    /* Power symbol using SVG for perfect cross-platform rendering */
+    .power-symbol-svg {
+      width: 120px;
+      height: 120px;
     }
 
     .power-on {
@@ -274,8 +273,9 @@
         width: 200px;
         height: 200px;
       }
-      .power-symbol {
-        font-size: 5rem;
+      .power-symbol-svg {
+        width: 110px;
+        height: 110px;
       }
       .title { font-size: 1.8rem; }
       body { padding: 2rem 1rem; }
@@ -287,8 +287,9 @@
         width: 180px;
         height: 180px;
       }
-      .power-symbol {
-        font-size: 4.5rem;
+      .power-symbol-svg {
+        width: 100px;
+        height: 100px;
       }
     }
   </style>
@@ -310,8 +311,11 @@
     <div class="device-id" id="deviceId">Loading...</div>
 
     <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
-      <!-- Power symbol instead of text -->
-      <span class="power-symbol" id="powerText">⏻</span>
+      <!-- SVG Power Symbol (IEC 5009 standby/on-off) for reliable display on all devices -->
+      <svg class="power-symbol-svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="12"/>
+        <circle cx="12" cy="12" r="10"/>
+      </svg>
     </div>
 
     <div class="status-text status-unknown" id="statusText">Connecting...</div>
@@ -409,24 +413,20 @@
 
     function updateDeviceStatus(status) {
       const powerDisplay = document.getElementById('powerDisplay');
-      const powerSymbol = document.getElementById('powerText');
       const statusText = document.getElementById('statusText');
 
       currentStatus = status;
 
       if (status === 'ON') {
         powerDisplay.className = 'power-display power-on';
-        powerSymbol.textContent = '⏻';  // Power symbol stays the same
         statusText.textContent = 'Device is ON';
         statusText.className = 'status-text status-on';
       } else if (status === 'OFF') {
         powerDisplay.className = 'power-display power-off';
-        powerSymbol.textContent = '⏻';  // Power symbol stays the same
         statusText.textContent = 'Device is OFF';
         statusText.className = 'status-text status-off';
       } else {
         powerDisplay.className = 'power-display power-unknown';
-        powerSymbol.textContent = '⏻';  // Power symbol for unknown too
         statusText.textContent = 'Status Unknown';
         statusText.className = 'status-text status-unknown';
       }
