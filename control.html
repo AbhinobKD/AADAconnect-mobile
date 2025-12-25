@@ -187,7 +187,6 @@
       transition: var(--transition);
     }
 
-    /* Power icon from iot_dev_ui2.html using Font Awesome */
     .power-icon {
       font-size: 5.5rem;
       color: white;
@@ -310,7 +309,6 @@
     <div class="device-id" id="deviceId">Loading...</div>
 
     <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
-      <!-- Power symbol from iot_dev_ui2.html using Font Awesome -->
       <i class="fas fa-power-off power-icon"></i>
     </div>
 
@@ -428,7 +426,18 @@
       }
     }
 
+    // Haptic feedback function
+    function hapticFeedback() {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50); // Subtle 50ms vibration - feels like a real button click
+      }
+      // No fallback for iOS - the API isn't supported there
+    }
+
     function togglePower() {
+      // Trigger haptic feedback on tap
+      hapticFeedback();
+
       if (!mqttClient || !mqttClient.connected) {
         alert('Not connected to MQTT');
         return;
