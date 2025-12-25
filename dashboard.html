@@ -897,6 +897,10 @@
       document.getElementById('userEmail').textContent = currentUser.email;
       connectMQTT();
 
+      deviceListTimeout = setTimeout(() => {
+        if (devices.length === 0) renderDevices(); // Show no devices if timeout reached
+      }, 5000);
+
       // Attach haptics to all interactive buttons
       addHapticToElement(document.getElementById('themeToggleBtn'), toggleTheme);
       addHapticToElement(document.getElementById('moreOptionsBtn'), showActionSheet);
@@ -923,10 +927,25 @@
 
         mqttClient.on('message', (topic, message) => handleMQTTMessage(topic, message));
 
-        mqttClient.on('error', () => statusIndicator.className = 'status-dot disconnected');
-        mqttClient.on('close', () => statusIndicator.className = 'status-dot disconnected');
+        mqttClient.on('error', (err) => {
+          console.error('MQTT Error:', err);
+          statusIndicator.className = 'status-dot disconnected';
+          // On error, render no devices if no data
+          if (devices.length === 0) renderDevices();
+        });
+
+        mqttClient.on('close', () => {
+          console.log('MQTT Disconnected');
+          statusIndicator.className = 'status-dot disconnected';
+          // On close, render no devices if no data
+          if (devices.length === 0) renderDevices();
+        });
+
       } catch (error) {
+        console.error('MQTT Connection failed:', error);
         statusIndicator.className = 'status-dot disconnected';
+        // On connection failure, render no devices
+        renderDevices();
       }
     }
 
@@ -1056,4 +1075,14 @@
     }
 
     function logout() {
-     
+      hideActionSheet();
+      if (confirm('Are you sure you want to logout?')) {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
