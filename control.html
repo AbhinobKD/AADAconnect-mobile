@@ -99,25 +99,36 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    /* New non-sliding theme button (sun/moon icon) */
-    .theme-button {
+    /* New theme toggle button matching dashboard.html style */
+    .theme-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--container-border);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      transition: var(--transition);
-      font-size: 1.4rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
-    .theme-button:active {
-      transform: scale(0.92);
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.95);
+    }
+
+    .theme-toggle-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-color);
+      stroke-width: 1.8;
     }
 
     .main-content {
@@ -278,9 +289,12 @@
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
     
-    <!-- Non-sliding theme button with sun/moon icon -->
-    <button class="theme-button" id="themeButton" onclick="toggleTheme()" aria-label="Toggle dark/light mode">
-      🌙
+    <!-- Theme toggle button copied from dashboard.html -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
     </button>
   </div>
 
@@ -424,32 +438,15 @@
     }
 
     function toggleTheme() {
-      const body = document.body;
-      const button = document.getElementById('themeButton');
-
-      if (body.classList.contains('dark-mode')) {
-        body.classList.remove('dark-mode');
-        body.classList.add('light-mode');
-        button.textContent = '☀️';
-        localStorage.setItem('theme', 'light');
-      } else {
-        body.classList.remove('light-mode');
-        body.classList.add('dark-mode');
-        button.textContent = '🌙';
-        localStorage.setItem('theme', 'dark');
-      }
+      document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
 
     function loadTheme() {
-      const savedTheme = localStorage.getItem('theme');
-      const button = document.getElementById('themeButton');
-
-      if (savedTheme === 'light') {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'light') {
         document.body.classList.add('light-mode');
-        button.textContent = '☀️';
-      } else {
-        document.body.classList.add('dark-mode');
-        button.textContent = '🌙';
       }
     }
 
