@@ -186,14 +186,22 @@
       transition: var(--transition);
     }
 
-    /* Updated power symbol SVG - standard and reliable */
+    /* Accurate IEC 5009 Standby/Power symbol SVG */
     .power-symbol-svg {
-      width: 130px;
-      height: 130px;
+      width: 140px;
+      height: 140px;
+    }
+
+    .power-symbol-svg circle {
+      stroke: white;
+      stroke-width: 12;
+      fill: none;
+    }
+
+    .power-symbol-svg line {
       stroke: white;
       stroke-width: 12;
       stroke-linecap: round;
-      fill: none;
     }
 
     .power-on {
@@ -278,8 +286,8 @@
         height: 200px;
       }
       .power-symbol-svg {
-        width: 120px;
-        height: 120px;
+        width: 130px;
+        height: 130px;
       }
       .title { font-size: 1.8rem; }
       body { padding: 2rem 1rem; }
@@ -292,8 +300,8 @@
         height: 180px;
       }
       .power-symbol-svg {
-        width: 110px;
-        height: 110px;
+        width: 120px;
+        height: 120px;
       }
     }
   </style>
@@ -315,10 +323,10 @@
     <div class="device-id" id="deviceId">Loading...</div>
 
     <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
-      <!-- Updated SVG: Standard power symbol (circle with vertical line) - thicker stroke for better visibility -->
-      <svg class="power-symbol-svg" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/>
-        <line x1="12" y1="6" x2="12" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <!-- Exact IEC 60417-5009 Standby/Power symbol (circle with vertical line from top to center) -->
+      <svg class="power-symbol-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="80"/>
+        <line x1="100" y1="20" x2="100" y2="100"/>
       </svg>
     </div>
 
