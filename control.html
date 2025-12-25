@@ -316,20 +316,26 @@
     let statusTopic = null;
     let currentStatus = 'UNKNOWN';
 
-    // Haptic feedback function
-    function hapticFeedback() {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50); // Subtle 50ms click
+    // Haptic feedback function with variable duration
+    function hapticFeedback(duration) {
+      if ('vibrate' in navigator && duration > 0) {
+        navigator.vibrate(duration);
       }
     }
 
-    // Check haptics settings from localStorage (set by dashboard)
-    function shouldHapticController() {
-      return localStorage.getItem('hapticsController') === 'true';
+    // Get current haptic intensity (default 50ms)
+    function getHapticIntensity() {
+      const saved = localStorage.getItem('hapticsIntensity');
+      return saved ? parseInt(saved) : 50;
     }
 
+    // Check haptics settings
     function shouldHapticAll() {
       return localStorage.getItem('hapticsAll') === 'true';
+    }
+
+    function shouldHapticController() {
+      return localStorage.getItem('hapticsController') === 'true';
     }
 
     // Generic haptic wrapper
@@ -339,7 +345,7 @@
         const isPowerButton = targetId === 'powerDisplay';
 
         if (shouldHapticAll() || (shouldHapticController() && isPowerButton)) {
-          hapticFeedback();
+          hapticFeedback(getHapticIntensity());
         }
 
         if (fn) fn(event);
