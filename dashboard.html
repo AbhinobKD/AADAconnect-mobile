@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -582,6 +582,69 @@
       font-size: 16px;
       color: var(--text-primary);
     }
+
+    /* Improved Haptic Intensity Slider */
+    .intensity-container {
+      padding: 18px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .intensity-title {
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .slider {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border-color);
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
+      border: 3px solid var(--bg-secondary);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      cursor: pointer;
+      border: 3px solid var(--bg-secondary);
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
+    }
+
+    .intensity-value {
+      min-width: 60px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -655,8 +718,10 @@
 
       <div class="action-item" id="hapticsItem">
         <div class="action-item-icon">
+          <!-- Clear vibration icon -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 7V4a2 2 0 012-2h12a2 2 0 012 2v3M18 2v2M6 2v2M6.34 17.52a2 2 0 00-2.34 2.34v.14a2 2 0 002 2h12a2 2 0 002-2v-.14a2 2 0 00-2.34-2.34l-1.32-.44a2 2 0 01-1.34-1.9V12a2 2 0 00-2-2H8a2 2 0 00-2 2v3.62a2 2 0 01-1.34 1.9l-1.32.44z"/>
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            <path d="M16 2v4M16 10v2M20 4v4M20 12v2M12 4v4M12 12v2"/>
           </svg>
         </div>
         <div class="action-item-text">
@@ -697,15 +762,30 @@
           <span>Haptics for all buttons</span>
         </label>
       </div>
+
+      <!-- Improved Haptic Intensity Slider -->
+      <div class="intensity-container">
+        <div class="intensity-title">Haptic Intensity</div>
+        <div class="slider-wrapper">
+          <input type="range" id="hapticsIntensity" min="10" max="200" step="10" value="50" class="slider">
+          <span class="intensity-value" id="intensityValue">50ms</span>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // Haptic feedback function
-    function hapticFeedback() {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50);
+    // Haptic feedback function with variable duration
+    function hapticFeedback(duration) {
+      if ('vibrate' in navigator && duration > 0) {
+        navigator.vibrate(duration);
       }
+    }
+
+    // Get current haptic intensity (default 50ms)
+    function getHapticIntensity() {
+      const saved = localStorage.getItem('hapticsIntensity');
+      return saved ? parseInt(saved) : 50;
     }
 
     // Check haptics settings
@@ -717,7 +797,7 @@
     function addHapticToElement(element, callback) {
       element.addEventListener('click', function(e) {
         if (shouldHapticAll()) {
-          hapticFeedback();
+          hapticFeedback(getHapticIntensity());
         }
         if (callback) callback(e);
       });
@@ -755,6 +835,7 @@
       document.getElementById('actionSheetOverlay').classList.add('show');
       document.getElementById('hapticsSheet').classList.add('show');
       loadHapticsSettings();
+      updateIntensityDisplay();
     }
 
     function hideHapticsSheet() {
@@ -765,17 +846,39 @@
     function loadHapticsSettings() {
       document.getElementById('hapticsController').checked = localStorage.getItem('hapticsController') === 'true';
       document.getElementById('hapticsAll').checked = localStorage.getItem('hapticsAll') === 'true';
+      const intensity = getHapticIntensity();
+      document.getElementById('hapticsIntensity').value = intensity;
+      updateIntensityDisplay();
+    }
+
+    function updateIntensityDisplay() {
+      const value = document.getElementById('hapticsIntensity').value;
+      document.getElementById('intensityValue').textContent = value + 'ms';
     }
 
     function saveHapticsSettings() {
       localStorage.setItem('hapticsController', document.getElementById('hapticsController').checked);
       localStorage.setItem('hapticsAll', document.getElementById('hapticsAll').checked);
+      localStorage.setItem('hapticsIntensity', document.getElementById('hapticsIntensity').value);
     }
 
     document.getElementById('actionSheetOverlay').addEventListener('click', () => {
       hideActionSheet();
       hideHapticsSheet();
     });
+
+    // Live haptic feedback while sliding
+    document.getElementById('hapticsIntensity').addEventListener('input', function(e) {
+      const value = parseInt(e.target.value);
+      updateIntensityDisplay();
+      saveHapticsSettings();
+      
+      // Trigger haptic at current intensity so user can feel the change immediately
+      hapticFeedback(value);
+    });
+
+    document.getElementById('hapticsController').addEventListener('change', saveHapticsSettings);
+    document.getElementById('hapticsAll').addEventListener('change', saveHapticsSettings);
 
     function checkAuth() {
       const userStr = sessionStorage.getItem('current_user');
@@ -800,10 +903,6 @@
       addHapticToElement(document.getElementById('refreshItem'), refreshDevices);
       addHapticToElement(document.getElementById('hapticsItem'), showHapticsSheet);
       addHapticToElement(document.getElementById('logoutItem'), logout);
-
-      // Device cards will have haptics added dynamically in renderDevices()
-      document.getElementById('hapticsController').addEventListener('change', saveHapticsSettings);
-      document.getElementById('hapticsAll').addEventListener('change', saveHapticsSettings);
     }
 
     function connectMQTT() {
@@ -895,7 +994,6 @@
             <span class="status-dot-small ${isOnline ? 'online' : 'offline'}"></span>
             <span>${statusMessage}</span>
           </div>`;
-        // Add haptic to device card click
         addHapticToElement(card, () => openDeviceControl(device.device_id));
         grid.appendChild(card);
       });
