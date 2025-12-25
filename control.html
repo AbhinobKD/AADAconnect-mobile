@@ -17,10 +17,8 @@
       --off-primary: #ef4444;
       --off-secondary: #f87171;
       --unknown-color: #64748b;
-      --container-bg: rgba(255, 255, 255, 0.04);
-      --container-border: rgba(255, 255, 255, 0.08);
       --glass-bg: rgba(255, 255, 255, 0.06);
-      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+      --container-border: rgba(255, 255, 255, 0.08);
       --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -35,27 +33,20 @@
       --off-primary: #dc2626;
       --off-secondary: #ef4444;
       --unknown-color: #64748b;
-      --container-bg: rgba(0, 0, 0, 0.04);
-      --container-border: rgba(0, 0, 0, 0.08);
       --glass-bg: rgba(255, 255, 255, 0.7);
-      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --container-border: rgba(0, 0, 0, 0.08);
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent; /* Removes blue/gray highlight on ALL taps (Android/Chrome) */
-      -webkit-touch-callout: none; /* Prevents long-press context menu if unwanted */
-      user-select: none; /* Prevents text selection on taps */
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
-    *:focus {
-      outline: none !important; /* Removes any focus outline completely */
-    }
-
-    *:active {
-      outline: none; /* Extra safety for active state */
+    *:focus, *:active {
+      outline: none !important;
     }
 
     body {
@@ -71,7 +62,6 @@
       padding: 2rem 1.5rem;
       transition: var(--transition);
       overflow: hidden;
-      -webkit-tap-highlight-color: transparent; /* Double safety for body */
     }
 
     .header {
@@ -109,13 +99,23 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
+    /* Fixed theme toggle container */
+    .theme-toggle-wrapper {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--container-border);
+      border-radius: 20px;
+      padding: 0.6rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
+    }
+
     .theme-toggle {
       cursor: pointer;
-      padding: 0.7rem;
+      display: block;
     }
 
     .theme-switch {
-      
       position: relative;
       width: 56px;
       height: 30px;
@@ -188,7 +188,6 @@
       cursor: pointer;
       position: relative;
       transition: var(--transition);
-      user-select: none;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
@@ -304,10 +303,14 @@
 <body class="dark-mode">
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
-    <label class="theme-toggle" aria-label="Toggle dark/light mode">
-      <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()" style="display: none;">
-      <span class="theme-switch"></span>
-    </label>
+    
+    <!-- New wrapper with background and padding to keep it fully visible -->
+    <div class="theme-toggle-wrapper">
+      <label class="theme-toggle" aria-label="Toggle dark/light mode">
+        <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()" style="display: none;">
+        <span class="theme-switch"></span>
+      </label>
+    </div>
   </div>
 
   <div class="main-content">
