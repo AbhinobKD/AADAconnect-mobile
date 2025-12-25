@@ -528,6 +528,59 @@
       font-size: 14px;
       color: var(--text-secondary);
     }
+
+    /* Haptics Sheet Styles */
+    .haptics-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: 28px 24px calc(env(safe-area-inset-bottom) + 28px);
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0, 0.07, 1);
+      z-index: 201;
+      max-width: 480px;
+      margin: 0 auto;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .haptics-sheet.show {
+      transform: translateY(0);
+    }
+
+    .haptics-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 18px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .haptics-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .haptics-label input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .haptics-label span {
+      font-size: 16px;
+      color: var(--text-primary);
+    }
   </style>
 </head>
 <body>
@@ -599,6 +652,18 @@
         </div>
       </div>
 
+      <div class="action-item" onclick="showHapticsSheet()">
+        <div class="action-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7V4a2 2 0 012-2h12a2 2 0 012 2v3M18 2v2M6 2v2M6.34 17.52a2 2 0 00-2.34 2.34v.14a2 2 0 002 2h12a2 2 0 002-2v-.14a2 2 0 00-2.34-2.34l-1.32-.44a2 2 0 01-1.34-1.9V12a2 2 0 00-2-2H8a2 2 0 00-2 2v3.62a2 2 0 01-1.34 1.9l-1.32.44z"/>
+          </svg>
+        </div>
+        <div class="action-item-text">
+          <div class="action-item-title">Haptics</div>
+          <div class="action-item-subtitle">Configure haptic feedback</div>
+        </div>
+      </div>
+
       <div class="action-item" onclick="logout()">
         <div class="action-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -611,6 +676,25 @@
           <div class="action-item-title">Logout</div>
           <div class="action-item-subtitle">Sign out of your account</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Haptics Options Sheet -->
+    <div class="haptics-sheet action-sheet" id="hapticsSheet">
+      <div class="action-sheet-handle"></div>
+      
+      <div class="haptics-item">
+        <label class="haptics-label">
+          <input type="checkbox" id="hapticsController">
+          <span>Haptic feedback for controller on-off button</span>
+        </label>
+      </div>
+
+      <div class="haptics-item">
+        <label class="haptics-label">
+          <input type="checkbox" id="hapticsAll">
+          <span>Haptics for all buttons</span>
+        </label>
       </div>
     </div>
   </div>
@@ -645,6 +729,42 @@
       document.getElementById('actionSheetOverlay').classList.remove('show');
       document.getElementById('actionSheet').classList.remove('show');
     }
+
+    function showHapticsSheet() {
+      hideActionSheet();
+      document.getElementById('actionSheetOverlay').classList.add('show');
+      document.getElementById('hapticsSheet').classList.add('show');
+      loadHapticsSettings();
+    }
+
+    function hideHapticsSheet() {
+      document.getElementById('actionSheetOverlay').classList.remove('show');
+      document.getElementById('hapticsSheet').classList.remove('show');
+    }
+
+    // Load haptics settings from localStorage
+    function loadHapticsSettings() {
+      const hapticsController = localStorage.getItem('hapticsController') === 'true';
+      const hapticsAll = localStorage.getItem('hapticsAll') === 'true';
+      document.getElementById('hapticsController').checked = hapticsController;
+      document.getElementById('hapticsAll').checked = hapticsAll;
+    }
+
+    // Save haptics settings
+    function saveHapticsSettings() {
+      localStorage.setItem('hapticsController', document.getElementById('hapticsController').checked);
+      localStorage.setItem('hapticsAll', document.getElementById('hapticsAll').checked);
+    }
+
+    // Add event listeners for checkboxes
+    document.getElementById('hapticsController').addEventListener('change', saveHapticsSettings);
+    document.getElementById('hapticsAll').addEventListener('change', saveHapticsSettings);
+
+    // Override hideActionSheet to handle both sheets
+    document.getElementById('actionSheetOverlay').addEventListener('click', () => {
+      hideActionSheet();
+      hideHapticsSheet();
+    });
 
     function checkAuth() {
       const userStr = sessionStorage.getItem('current_user');
@@ -831,6 +951,7 @@
 </body>
 
 </html>
+
 
 
 
