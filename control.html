@@ -186,7 +186,7 @@
       transition: var(--transition);
     }
 
-    /* Accurate IEC 5009 Standby/Power symbol SVG */
+    /* Open/incomplete circle power symbol SVG */
     .power-symbol-svg {
       width: 140px;
       height: 140px;
@@ -323,10 +323,10 @@
     <div class="device-id" id="deviceId">Loading...</div>
 
     <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
-      <!-- Exact IEC 60417-5009 Standby/Power symbol (circle with vertical line from top to center) -->
+      <!-- Open circle power symbol (partial arc) -->
       <svg class="power-symbol-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="80"/>
-        <line x1="100" y1="20" x2="100" y2="100"/>
+        <path d="M100,20 A80,80 0 1,1 100,180 A80,80 0 1,1 100,20" stroke="white" stroke-width="12" fill="none"/>
+        <line x1="100" y1="20" x2="100" y2="100" stroke="white" stroke-width="12" stroke-linecap="round"/>
       </svg>
     </div>
 
