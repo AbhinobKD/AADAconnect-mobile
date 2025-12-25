@@ -45,35 +45,49 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent; /* Removes blue/gray highlight on ALL taps (Android/Chrome) */
+      -webkit-touch-callout: none; /* Prevents long-press context menu if unwanted */
+      user-select: none; /* Prevents text selection on taps */
+    }
+
+    *:focus {
+      outline: none !important; /* Removes any focus outline completely */
+    }
+
+    *:active {
+      outline: none; /* Extra safety for active state */
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
       color: var(--text-color);
-      height: 100vh;
-      height: 100dvh; /* Full viewport on mobile */
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 2rem 1rem;
+      padding: 2rem 1.5rem;
       transition: var(--transition);
       overflow: hidden;
-    }
-
-    /* Remove default focus outlines */
-    *:focus {
-      outline: none;
+      -webkit-tap-highlight-color: transparent; /* Double safety for body */
     }
 
     .header {
-      width: 100%;
-      max-width: 400px;
+      position: absolute;
+      top: 2rem;
+      left: 1.5rem;
+      right: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 10;
+      pointer-events: none;
+    }
+
+    .header > * {
+      pointer-events: auto;
     }
 
     .back-button {
@@ -97,7 +111,7 @@
 
     .theme-toggle {
       cursor: pointer;
-      z-index: 20; /* Ensure it's on top */
+      padding: 0.5rem;
     }
 
     .theme-switch {
@@ -175,7 +189,6 @@
       transition: var(--transition);
       user-select: none;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      -webkit-tap-highlight-color: transparent; /* Remove blue highlight on Android */
     }
 
     .power-display:active {
@@ -274,6 +287,8 @@
         font-size: 2.8rem;
       }
       .title { font-size: 1.8rem; }
+      body { padding: 2rem 1rem; }
+      .header { left: 1rem; right: 1rem; }
     }
 
     @media (max-height: 700px) {
@@ -288,7 +303,7 @@
 <body class="dark-mode">
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
-    <label class="theme-toggle" aria-label="Toggle theme">
+    <label class="theme-toggle" aria-label="Toggle dark/light mode">
       <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()" style="display: none;">
       <span class="theme-switch"></span>
     </label>
