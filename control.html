@@ -81,47 +81,35 @@
       pointer-events: auto;
     }
 
-    .back-button {
+    .back-button,
+    .theme-toggle-btn {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--container-border);
       color: var(--text-color);
-      padding: 0.7rem 1.2rem;
-      border-radius: 16px;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 600;
       transition: var(--transition);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
-    .back-button:active {
-      transform: translateY(2px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    .back-button {
+      padding: 0.7rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .back-button:active,
+    .theme-toggle-btn:active {
+      transform: scale(0.95);
     }
 
     .theme-toggle-btn {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--container-border);
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-
-    .theme-toggle-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      transform: translateY(-2px);
-    }
-
-    .theme-toggle-btn:active {
-      transform: scale(0.95);
     }
 
     .theme-toggle-btn svg {
@@ -294,9 +282,9 @@
 </head>
 <body class="dark-mode">
   <div class="header">
-    <button class="back-button" onclick="goBack()">← Back</button>
+    <button class="back-button" id="backButton">← Back</button>
     
-    <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+    <button class="theme-toggle-btn" id="themeButton">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/>
         <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -308,7 +296,7 @@
     <h1 class="title">Device Control</h1>
     <div class="device-id" id="deviceId">Loading...</div>
 
-    <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
+    <div class="power-display power-unknown" id="powerDisplay" role="button" tabindex="0" aria-label="Toggle device power">
       <i class="fas fa-power-off power-icon"></i>
     </div>
 
@@ -327,6 +315,36 @@
     let controlTopic = null;
     let statusTopic = null;
     let currentStatus = 'UNKNOWN';
+
+    // Haptic feedback function
+    function hapticFeedback() {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50); // Subtle 50ms click
+      }
+    }
+
+    // Check haptics settings from localStorage (set by dashboard)
+    function shouldHapticController() {
+      return localStorage.getItem('hapticsController') === 'true';
+    }
+
+    function shouldHapticAll() {
+      return localStorage.getItem('hapticsAll') === 'true';
+    }
+
+    // Generic haptic wrapper
+    function withHaptic(fn) {
+      return function(event) {
+        const targetId = event.currentTarget.id;
+        const isPowerButton = targetId === 'powerDisplay';
+
+        if (shouldHapticAll() || (shouldHapticController() && isPowerButton)) {
+          hapticFeedback();
+        }
+
+        if (fn) fn(event);
+      };
+    }
 
     function checkAuth() {
       const userStr = sessionStorage.getItem('current_user');
@@ -426,18 +444,7 @@
       }
     }
 
-    // Haptic feedback function
-    function hapticFeedback() {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50); // Subtle 50ms vibration - feels like a real button click
-      }
-      // No fallback for iOS - the API isn't supported there
-    }
-
-    function togglePower() {
-      // Trigger haptic feedback on tap
-      hapticFeedback();
-
+    function performTogglePower() {
       if (!mqttClient || !mqttClient.connected) {
         alert('Not connected to MQTT');
         return;
@@ -450,10 +457,14 @@
       }
     }
 
-    function toggleTheme() {
+    function performToggleTheme() {
       document.body.classList.toggle('light-mode');
       const isLight = document.body.classList.contains('light-mode');
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    function performGoBack() {
+      window.location.href = 'dashboard.html';
     }
 
     function loadTheme() {
@@ -463,17 +474,20 @@
       }
     }
 
-    function goBack() {
-      window.location.href = 'dashboard.html';
-    }
+    // Attach event listeners with haptic wrapper
+    window.onload = function() {
+      init();
+
+      document.getElementById('powerDisplay').addEventListener('click', withHaptic(performTogglePower));
+      document.getElementById('backButton').addEventListener('click', withHaptic(performGoBack));
+      document.getElementById('themeButton').addEventListener('click', withHaptic(performToggleTheme));
+    };
 
     window.onbeforeunload = function() {
       if (mqttClient && mqttClient.connected) {
         mqttClient.end();
       }
     };
-
-    window.onload = init;
   </script>
 </body>
 </html>
