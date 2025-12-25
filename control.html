@@ -62,6 +62,11 @@
       overflow: hidden;
     }
 
+    /* Remove default focus outlines */
+    *:focus {
+      outline: none;
+    }
+
     .header {
       width: 100%;
       max-width: 400px;
@@ -92,6 +97,7 @@
 
     .theme-toggle {
       cursor: pointer;
+      z-index: 20; /* Ensure it's on top */
     }
 
     .theme-switch {
@@ -169,6 +175,7 @@
       transition: var(--transition);
       user-select: none;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      -webkit-tap-highlight-color: transparent; /* Remove blue highlight on Android */
     }
 
     .power-display:active {
@@ -281,7 +288,7 @@
 <body class="dark-mode">
   <div class="header">
     <button class="back-button" onclick="goBack()">← Back</button>
-    <label class="theme-toggle">
+    <label class="theme-toggle" aria-label="Toggle theme">
       <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()" style="display: none;">
       <span class="theme-switch"></span>
     </label>
@@ -291,7 +298,7 @@
     <h1 class="title">Device Control</h1>
     <div class="device-id" id="deviceId">Loading...</div>
 
-    <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()">
+    <div class="power-display power-unknown" id="powerDisplay" onclick="togglePower()" role="button" tabindex="0" aria-label="Toggle device power">
       <span id="powerText">---</span>
     </div>
 
