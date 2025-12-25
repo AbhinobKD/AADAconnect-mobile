@@ -553,7 +553,7 @@
     .haptics-item {
       display: flex;
       align-items: center;
-      gap: 20px;
+      justify-content: space-between;
       padding: 18px 20px;
       border-radius: var(--radius-md);
       background: var(--bg-card);
@@ -566,14 +566,15 @@
     .haptics-label {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       cursor: pointer;
-      width: 100%;
+      flex: 1;
     }
 
-    .haptics-label input {
-      width: 20px;
-      height: 20px;
+    .haptics-label input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      accent-color: var(--accent-primary);
       cursor: pointer;
     }
 
@@ -590,13 +591,13 @@
       <div class="header-top">
         <h1 class="app-title">AADAconnect</h1>
         <div class="header-actions">
-          <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <button class="icon-btn" id="themeToggleBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"/>
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
             </svg>
           </button>
-          <button class="icon-btn" onclick="showActionSheet()" aria-label="More options">
+          <button class="icon-btn" id="moreOptionsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="1"/>
               <circle cx="12" cy="5" r="1"/>
@@ -626,7 +627,7 @@
     </div>
 
     <!-- FAB -->
-    <button class="fab" onclick="addDevice()" aria-label="Add device">
+    <button class="fab" id="addDeviceBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -634,11 +635,11 @@
     </button>
 
     <!-- Action Sheet -->
-    <div class="action-sheet-overlay" id="actionSheetOverlay" onclick="hideActionSheet()"></div>
+    <div class="action-sheet-overlay" id="actionSheetOverlay"></div>
     <div class="action-sheet" id="actionSheet">
       <div class="action-sheet-handle"></div>
       
-      <div class="action-item" onclick="refreshDevices()">
+      <div class="action-item" id="refreshItem">
         <div class="action-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"/>
@@ -652,7 +653,7 @@
         </div>
       </div>
 
-      <div class="action-item" onclick="showHapticsSheet()">
+      <div class="action-item" id="hapticsItem">
         <div class="action-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 7V4a2 2 0 012-2h12a2 2 0 012 2v3M18 2v2M6 2v2M6.34 17.52a2 2 0 00-2.34 2.34v.14a2 2 0 002 2h12a2 2 0 002-2v-.14a2 2 0 00-2.34-2.34l-1.32-.44a2 2 0 01-1.34-1.9V12a2 2 0 00-2-2H8a2 2 0 00-2 2v3.62a2 2 0 01-1.34 1.9l-1.32.44z"/>
@@ -664,7 +665,7 @@
         </div>
       </div>
 
-      <div class="action-item" onclick="logout()">
+      <div class="action-item" id="logoutItem">
         <div class="action-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -680,7 +681,7 @@
     </div>
 
     <!-- Haptics Options Sheet -->
-    <div class="haptics-sheet action-sheet" id="hapticsSheet">
+    <div class="haptics-sheet" id="hapticsSheet">
       <div class="action-sheet-handle"></div>
       
       <div class="haptics-item">
@@ -700,14 +701,33 @@
   </div>
 
   <script>
-    // JavaScript logic remains the same (only minor tweaks for robustness and status handling)
+    // Haptic feedback function
+    function hapticFeedback() {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }
+
+    // Check haptics settings
+    function shouldHapticAll() {
+      return localStorage.getItem('hapticsAll') === 'true';
+    }
+
+    // Generic haptic wrapper for any click
+    function addHapticToElement(element, callback) {
+      element.addEventListener('click', function(e) {
+        if (shouldHapticAll()) {
+          hapticFeedback();
+        }
+        if (callback) callback(e);
+      });
+    }
+
     let mqttClient = null;
     let currentUser = null;
     let devices = [];
-    let deviceStatuses = {};
     let deviceOnlineStatus = {};
     let deviceTimeouts = {};
-    let deviceListTimeout = null;
 
     function toggleTheme() {
       document.body.classList.toggle('light-mode');
@@ -742,25 +762,16 @@
       document.getElementById('hapticsSheet').classList.remove('show');
     }
 
-    // Load haptics settings from localStorage
     function loadHapticsSettings() {
-      const hapticsController = localStorage.getItem('hapticsController') === 'true';
-      const hapticsAll = localStorage.getItem('hapticsAll') === 'true';
-      document.getElementById('hapticsController').checked = hapticsController;
-      document.getElementById('hapticsAll').checked = hapticsAll;
+      document.getElementById('hapticsController').checked = localStorage.getItem('hapticsController') === 'true';
+      document.getElementById('hapticsAll').checked = localStorage.getItem('hapticsAll') === 'true';
     }
 
-    // Save haptics settings
     function saveHapticsSettings() {
       localStorage.setItem('hapticsController', document.getElementById('hapticsController').checked);
       localStorage.setItem('hapticsAll', document.getElementById('hapticsAll').checked);
     }
 
-    // Add event listeners for checkboxes
-    document.getElementById('hapticsController').addEventListener('change', saveHapticsSettings);
-    document.getElementById('hapticsAll').addEventListener('change', saveHapticsSettings);
-
-    // Override hideActionSheet to handle both sheets
     document.getElementById('actionSheetOverlay').addEventListener('click', () => {
       hideActionSheet();
       hideHapticsSheet();
@@ -781,6 +792,18 @@
       if (!currentUser) return;
       document.getElementById('userEmail').textContent = currentUser.email;
       connectMQTT();
+
+      // Attach haptics to all interactive buttons
+      addHapticToElement(document.getElementById('themeToggleBtn'), toggleTheme);
+      addHapticToElement(document.getElementById('moreOptionsBtn'), showActionSheet);
+      addHapticToElement(document.getElementById('addDeviceBtn'), addDevice);
+      addHapticToElement(document.getElementById('refreshItem'), refreshDevices);
+      addHapticToElement(document.getElementById('hapticsItem'), showHapticsSheet);
+      addHapticToElement(document.getElementById('logoutItem'), logout);
+
+      // Device cards will have haptics added dynamically in renderDevices()
+      document.getElementById('hapticsController').addEventListener('change', saveHapticsSettings);
+      document.getElementById('hapticsAll').addEventListener('change', saveHapticsSettings);
     }
 
     function connectMQTT() {
@@ -796,9 +819,6 @@
           statusIndicator.className = 'status-dot connected';
           const fetchTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/fetch`;
           mqttClient.subscribe(fetchTopic);
-          deviceListTimeout = setTimeout(() => {
-            if (devices.length === 0) renderDevices();
-          }, 5000);
         });
 
         mqttClient.on('message', (topic, message) => handleMQTTMessage(topic, message));
@@ -815,7 +835,6 @@
       try {
         const data = JSON.parse(message.toString());
         if (data.device_list && Array.isArray(data.device_list)) {
-          clearTimeout(deviceListTimeout);
           devices = data.device_list;
           renderDevices();
           devices.forEach(device => {
@@ -876,7 +895,8 @@
             <span class="status-dot-small ${isOnline ? 'online' : 'offline'}"></span>
             <span>${statusMessage}</span>
           </div>`;
-        card.onclick = () => openDeviceControl(device.device_id);
+        // Add haptic to device card click
+        addHapticToElement(card, () => openDeviceControl(device.device_id));
         grid.appendChild(card);
       });
     }
@@ -896,19 +916,16 @@
       });
     }
 
-    function checkDeviceStatus(deviceId) {
-      if (!mqttClient?.connected) return;
-      const ofTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${deviceId}/OF`;
-      clearTimeout(deviceTimeouts[deviceId]);
-      mqttClient.publish(ofTopic, 'check_status');
-      deviceTimeouts[deviceId] = setTimeout(() => {
-        deviceOnlineStatus[deviceId] = 'Offline';
-        updateDeviceOnlineStatus(deviceId, 'Offline');
-      }, 5000);
-    }
-
     function checkAllDevicesStatus() {
-      devices.forEach(d => checkDeviceStatus(d.device_id));
+      devices.forEach(d => {
+        const ofTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${d.device_id}/OF`;
+        clearTimeout(deviceTimeouts[d.device_id]);
+        mqttClient.publish(ofTopic, 'check_status');
+        deviceTimeouts[d.device_id] = setTimeout(() => {
+          deviceOnlineStatus[d.device_id] = 'Offline';
+          updateDeviceOnlineStatus(d.device_id, 'Offline');
+        }, 5000);
+      });
     }
 
     function openDeviceControl(deviceId) {
@@ -949,9 +966,4 @@
     window.onload = init;
   </script>
 </body>
-
 </html>
-
-
-
-
