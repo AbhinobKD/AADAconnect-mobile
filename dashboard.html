@@ -956,7 +956,7 @@
         }
 
         // Display the message if not 'offline', otherwise show 'Offline'
-        const displayMessage = (lowerMessage === 'offline') ? 'Offline' : rawMessage;
+        const displayMessage = (lowerMessage === 'offline') ? 'offline' : rawMessage;
         deviceOnlineStatus[deviceId] = displayMessage;
 
         const isOnline = lowerMessage !== 'offline';
@@ -986,8 +986,8 @@
 
       grid.innerHTML = '';
       [...devices].sort((a, b) => a.device_rank - b.device_rank).forEach(device => {
-        const displayMessage = deviceOnlineStatus[device.device_id] || 'Offline';
-        const isOnline = !(displayMessage === 'Offline' || displayMessage === 'Checking...');
+        const displayMessage = deviceOnlineStatus[device.device_id] || 'offline';
+        const isOnline = !(displayMessage === 'offline' || displayMessage === 'Checking...');
 
         const card = document.createElement('div');
         card.className = `device-card${isOnline ? ' online' : ''}`;
@@ -1039,8 +1039,8 @@
 
         deviceTimeouts[d.device_id] = setTimeout(() => {
           if (deviceOnlineStatus[d.device_id] === 'Checking...') {
-            deviceOnlineStatus[d.device_id] = 'Offline';
-            updateDeviceOnlineStatus(d.device_id, 'Offline', false);
+            deviceOnlineStatus[d.device_id] = 'offline';
+            updateDeviceOnlineStatus(d.device_id, 'offline', false);
           }
         }, 5000);
       });
