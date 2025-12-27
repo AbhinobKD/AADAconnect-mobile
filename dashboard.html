@@ -959,7 +959,7 @@
         }
 
         const isExplicitOffline = rawMessage.toLowerCase() === 'offline';
-        const displayMessage = isExplicitOffline ? 'Offline' : rawMessage;
+        const displayMessage = isExplicitOffline ? 'offline' : rawMessage;
 
         deviceOnlineStatus[deviceId] = displayMessage;
         updateDeviceOnlineStatus(deviceId, displayMessage, !isExplicitOffline);
@@ -988,10 +988,10 @@
 
       grid.innerHTML = '';
       [...devices].sort((a, b) => a.device_rank - b.device_rank).forEach(device => {
-        const rawStatus = deviceOnlineStatus[device.device_id] || 'Offline';
+        const rawStatus = deviceOnlineStatus[device.device_id] || 'offline';
         const isExplicitOffline = rawStatus.toLowerCase() === 'offline';
-        const displayMessage = isExplicitOffline ? 'Offline' : rawStatus;
-        const isOnline = !isExplicitOffline && rawStatus !== 'Offline';
+        const displayMessage = isExplicitOffline ? 'offline' : rawStatus;
+        const isOnline = !isExplicitOffline && rawStatus !== 'offline';
 
         const card = document.createElement('div');
         card.className = `device-card${isOnline ? ' online' : ''}${isExplicitOffline ? ' offline-explicit' : ''}`;
@@ -1039,8 +1039,8 @@
         clearTimeout(deviceTimeouts[d.device_id]);
         mqttClient.publish(ofTopic, 'check_status');
         deviceTimeouts[d.device_id] = setTimeout(() => {
-          deviceOnlineStatus[d.device_id] = 'Offline';
-          updateDeviceOnlineStatus(d.device_id, 'Offline', false);
+          deviceOnlineStatus[d.device_id] = 'offline';
+          updateDeviceOnlineStatus(d.device_id, 'offline', false);
         }, 5000);
       });
     }
