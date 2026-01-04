@@ -341,10 +341,12 @@
     let mqttClient = null;
     let currentUser = null;
     let deviceId = null;
-    let lastKnownState = null; // 'ON', 'OFF', or null
-    let isOnline = false;      // true if currently receiving status
+    let currentStatus = 'unknown';        // Current confirmed status from device
+    let lastKnownStatus = 'unknown';      // Last valid ON/OFF before going offline
+    let isOnline = false;                 // Whether we are receiving status updates
     let controlTopic = null;
     let statusTopic = null;
+    let statusTimeout = null;             // Timeout to detect loss of response
 
     function shouldHapticController() {
       return localStorage.getItem('hapticsController') === 'true';
@@ -421,30 +423,24 @@
         });
 
         mqttClient.on('message', (topic, message) => {
-          const status = message.toString().trim().toUpperCase();
-          if (status === 'ON' || status === 'OFF') {
-            lastKnownState = status;
-            isOnline = true;
-            updateDeviceStatus(status);
-          }
+          const status = message.toString().trim();
+          console.log('Status received:', status);
+          handleStatusUpdate(status);
         });
 
         mqttClient.on('error', (err) => {
           console.error('MQTT Error:', err);
           updateConnectionStatus(false);
-          setOfflineState();
         });
 
         mqttClient.on('close', () => {
           console.log('MQTT Disconnected');
           updateConnectionStatus(false);
-          setOfflineState();
         });
 
       } catch (error) {
         console.error('MQTT Connection failed:', error);
         updateConnectionStatus(false);
-        setOfflineState();
       }
     }
 
@@ -461,17 +457,23 @@
       }
     }
 
-    function setOfflineState() {
-      isOnline = false;
-      updateDeviceStatus(lastKnownState || 'unknown');
-    }
+    function handleStatusUpdate(status) {
+      // Clear any pending offline timeout
+      if (statusTimeout) {
+        clearTimeout(statusTimeout);
+        statusTimeout = null;
+      }
 
-    function updateDeviceStatus(status) {
-      const powerDisplay = document.getElementById('powerDisplay');
-      const statusText = document.getElementById('statusText');
+      // Device is responding → definitely online
+      isOnline = true;
 
-      if (isOnline && (status === 'ON' || status === 'OFF')) {
-        // Device is online with valid state
+      if (status === 'ON' || status === 'OFF') {
+        currentStatus = status;
+        lastKnownStatus = status;
+
+        const powerDisplay = document.getElementById('powerDisplay');
+        const statusText = document.getElementById('statusText');
+
         if (status === 'ON') {
           powerDisplay.className = 'power-display power-on';
           statusText.textContent = 'Device is ON';
@@ -482,17 +484,27 @@
           statusText.className = 'status-text status-off';
         }
       } else {
-        // Device is offline – show last known state with note
-        powerDisplay.className = 'power-display power-offline';
-        statusText.className = 'status-text status-offline';
+        // Unexpected status — treat as offline
+        goOffline();
+      }
+    }
 
-        if (lastKnownState === 'ON') {
-          statusText.textContent = 'Device is ON (last known before going offline)';
-        } else if (lastKnownState === 'OFF') {
-          statusText.textContent = 'Device is OFF (last known before going offline)';
-        } else {
-          statusText.textContent = 'Device Offline';
-        }
+    function goOffline() {
+      isOnline = false;
+      const powerDisplay = document.getElementById('powerDisplay');
+      const statusText = document.getElementById('statusText');
+
+      powerDisplay.className = 'power-display power-offline';
+
+      if (lastKnownStatus === 'ON') {
+        statusText.textContent = 'Device is ON (last known before going offline)';
+        statusText.className = 'status-text status-on';
+      } else if (lastKnownStatus === 'OFF') {
+        statusText.textContent = 'Device is OFF (last known before going offline)';
+        statusText.className = 'status-text status-off';
+      } else {
+        statusText.textContent = 'Device Offline';
+        statusText.className = 'status-text status-offline';
       }
     }
 
@@ -507,11 +519,15 @@
         return;
       }
 
-      if (lastKnownState === 'ON') {
-        mqttClient.publish(controlTopic, '0');
-      } else {
-        mqttClient.publish(controlTopic, '1');
-      }
+      // Send command
+      const command = (currentStatus === 'ON') ? '0' : '1';
+      mqttClient.publish(controlTopic, command);
+
+      // Start timeout to detect if device goes offline (no status response)
+      if (statusTimeout) clearTimeout(statusTimeout);
+      statusTimeout = setTimeout(() => {
+        goOffline();
+      }, 3000); // 3 seconds without status update → consider offline
     }
 
     function performToggleTheme() {
