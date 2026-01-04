@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AADA - Device Control</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+      --bg-gradient-start: #0f0f1a;
+      --bg-gradient-end: #1a1a2e;
+      --text-color: #e0e0ff;
+      --accent-color: #00d4ff;
+      --device-id-color: #00ffaa;
+      --on-primary: #10b981;
+      --on-secondary: #34d399;
+      --off-primary: #ef4444;
+      --off-secondary: #f87171;
+      --unknown-color: #64748b;
+      --offline-pulse: #94a3b8;
+      --glass-bg: rgba(255, 255, 255, 0.06);
+      --container-border: rgba(255, 255, 255, 0.08);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.light-mode {
+      --bg-gradient-start: #f8fafc;
+      --bg-gradient-end: #e2e8f0;
+      --text-color: #1e293b;
+      --accent-color: #0066ff;
+      --device-id-color: #16a34a;
+      --on-primary: #16a34a;
+      --on-secondary: #22c55e;
+      --off-primary: #dc2626;
+      --off-secondary: #ef4444;
+      --unknown-color: #64748b;
+      --offline-pulse: #94a3b8;
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --container-border: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    *:focus, *:active {
+      outline: none !important;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: var(--text-color);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 1.5rem;
+      transition: var(--transition);
+      overflow: hidden;
+    }
+
+    .header {
+      position: absolute;
+      top: 2rem;
+      left: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .header > * {
+      pointer-events: auto;
+    }
+
+    .back-button,
+    .theme-toggle-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--container-border);
+      color: var(--text-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .back-button {
+      padding: 0.7rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .back-button:active,
+    .theme-toggle-btn:active {
+      transform: scale(0.95);
+    }
+
+    .theme-toggle-btn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-color);
+      stroke-width: 1.8;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--accent-color);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .device-id {
+      font-size: 1.2rem;
+      color: var(--device-id-color);
+      font-weight: 600;
+      margin-bottom: 2.5rem;
+      letter-spacing: 1.5px;
+      opacity: 0.9;
+      transition: var(--transition);
+    }
+
+    .power-display {
+      width: 220px;
+      height: 220px;
+      margin: 2rem auto;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .power-display:active {
+      transform: scale(0.95);
+    }
+
+    .power-display::before {
+      content: '';
+      position: absolute;
+      inset: -15px;
+      border-radius: 50%;
+      opacity: 0.4;
+      transition: var(--transition);
+    }
+
+    .power-display::after {
+      content: '';
+      position: absolute;
+      inset: -25px;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .power-icon {
+      font-size: 5.5rem;
+      color: white;
+      transition: var(--transition);
+    }
+
+    .power-on {
+      background: linear-gradient(145deg, var(--on-primary), var(--on-secondary));
+      color: white;
+      box-shadow: 0 0 60px rgba(16, 185, 129, 0.6), 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .power-on::before {
+      background: radial-gradient(circle, var(--on-primary) 0%, transparent 70%);
+    }
+
+    .power-off {
+      background: linear-gradient(145deg, var(--off-primary), var(--off-secondary));
+      color: white;
+      box-shadow: 0 0 60px rgba(239, 68, 68, 0.6), 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .power-off::before {
+      background: radial-gradient(circle, var(--off-primary) 0%, transparent 70%);
+    }
+
+    .power-offline {
+      background: linear-gradient(145deg, var(--unknown-color), var(--unknown-color));
+      color: white;
+      box-shadow: 0 0 40px rgba(100, 116, 139, 0.2), 0 20px 40px rgba(0, 0, 0, 0.4);
+      cursor: not-allowed;
+    }
+
+    .power-offline::before {
+      background: radial-gradient(circle, var(--unknown-color) 0%, transparent 70%);
+    }
+
+    /* Offline pulsing ring animation */
+    .power-offline::after {
+      opacity: 0.6;
+      border-color: var(--offline-pulse);
+      animation: offlinePulse 2s infinite ease-in-out;
+    }
+
+    @keyframes offlinePulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.3;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(0.9);
+        opacity: 0.3;
+      }
+    }
+
+    .power-offline .power-icon {
+      color: #cbd5e1;
+      animation: offlineIconPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes offlineIconPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .status-text {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .status-on {
+      color: var(--on-primary);
+    }
+
+    .status-off {
+      color: var(--off-primary);
+    }
+
+    .status-offline {
+      color: var(--unknown-color);
+    }
+
+    .connection-status {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--container-border);
+      border-radius: 9999px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .connected-indicator {
+      background: var(--on-primary);
+    }
+
+    .disconnected-indicator {
+      background: var(--off-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button id="backButton" class="back-button">Back</button>
+    <button id="themeButton" class="theme-toggle-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="main-content">
+    <h1 class="title">Device Control</h1>
+    <div class="device-id" id="deviceId">Loading...</div>
+    <div id="powerDisplay" class="power-display power-offline">
+      <i class="fas fa-power-off power-icon"></i>
+    </div>
+    <p id="statusText" class="status-text status-offline">Device Offline</p>
+  </div>
+
+  <div class="connection-status">
+    <span id="mqttIndicator" class="status-indicator disconnected-indicator"></span>
+    <span id="connectionText">Disconnected</span>
+  </div>
+
+  <script>
+    let mqttClient = null;
+    let currentUser = null;
+    let deviceId = null;
+    let lastKnownState = null; // 'ON', 'OFF', or null
+    let isOnline = false;      // true if currently receiving status
+    let controlTopic = null;
+    let statusTopic = null;
+
+    function shouldHapticController() {
+      return localStorage.getItem('hapticsController') === 'true';
+    }
+
+    function shouldHapticAll() {
+      return localStorage.getItem('hapticsAll') === 'true';
+    }
+
+    function getHapticIntensity() {
+      const saved = localStorage.getItem('hapticsIntensity');
+      return saved ? parseInt(saved) : 50;
+    }
+
+    function hapticFeedback(duration) {
+      if ('vibrate' in navigator && duration > 0) {
+        navigator.vibrate(duration);
+      }
+    }
+
+    function withHaptic(fn) {
+      return function(event) {
+        const targetId = event.currentTarget.id;
+        const isPowerButton = targetId === 'powerDisplay';
+
+        if (shouldHapticAll() || (shouldHapticController() && isPowerButton)) {
+          hapticFeedback(getHapticIntensity());
+        }
+
+        if (fn) fn(event);
+      };
+    }
+
+    function checkAuth() {
+      const userStr = sessionStorage.getItem('current_user');
+      const device = sessionStorage.getItem('active_device');
+      
+      if (!userStr || !device) {
+        window.location.href = 'dashboard.html';
+        return false;
+      }
+
+      currentUser = JSON.parse(userStr);
+      deviceId = device;
+      return true;
+    }
+
+    function init() {
+      if (!checkAuth()) return;
+
+      document.getElementById('deviceId').textContent = deviceId;
+
+      controlTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${deviceId}/control`;
+      statusTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${deviceId}/status`;
+
+      connectMQTT();
+      loadTheme();
+    }
+
+    function connectMQTT() {
+      try {
+        mqttClient = mqtt.connect('wss://64611cb98d5946f6a3925fe3c7fe3b65.s1.eu.hivemq.cloud:8884/mqtt', {
+          username: 'AADA_IOT_Dev',
+          password: 'Aada@008'
+        });
+
+        mqttClient.on('connect', () => {
+          console.log('MQTT Connected');
+          updateConnectionStatus(true);
+          mqttClient.subscribe(statusTopic, (err) => {
+            if (err) console.error('Subscribe error:', err);
+            else console.log('Subscribed to:', statusTopic);
+          });
+        });
+
+        mqttClient.on('message', (topic, message) => {
+          const status = message.toString().trim().toUpperCase();
+          if (status === 'ON' || status === 'OFF') {
+            lastKnownState = status;
+            isOnline = true;
+            updateDeviceStatus(status);
+          }
+        });
+
+        mqttClient.on('error', (err) => {
+          console.error('MQTT Error:', err);
+          updateConnectionStatus(false);
+          setOfflineState();
+        });
+
+        mqttClient.on('close', () => {
+          console.log('MQTT Disconnected');
+          updateConnectionStatus(false);
+          setOfflineState();
+        });
+
+      } catch (error) {
+        console.error('MQTT Connection failed:', error);
+        updateConnectionStatus(false);
+        setOfflineState();
+      }
+    }
+
+    function updateConnectionStatus(connected) {
+      const indicator = document.getElementById('mqttIndicator');
+      const text = document.getElementById('connectionText');
+
+      if (connected) {
+        indicator.className = 'status-indicator connected-indicator';
+        text.textContent = 'Connected';
+      } else {
+        indicator.className = 'status-indicator disconnected-indicator';
+        text.textContent = 'Disconnected';
+      }
+    }
+
+    function setOfflineState() {
+      isOnline = false;
+      updateDeviceStatus(lastKnownState || 'unknown');
+    }
+
+    function updateDeviceStatus(status) {
+      const powerDisplay = document.getElementById('powerDisplay');
+      const statusText = document.getElementById('statusText');
+
+      if (isOnline && (status === 'ON' || status === 'OFF')) {
+        // Device is online with valid state
+        if (status === 'ON') {
+          powerDisplay.className = 'power-display power-on';
+          statusText.textContent = 'Device is ON';
+          statusText.className = 'status-text status-on';
+        } else {
+          powerDisplay.className = 'power-display power-off';
+          statusText.textContent = 'Device is OFF';
+          statusText.className = 'status-text status-off';
+        }
+      } else {
+        // Device is offline – show last known state with note
+        powerDisplay.className = 'power-display power-offline';
+        statusText.className = 'status-text status-offline';
+
+        if (lastKnownState === 'ON') {
+          statusText.textContent = 'Device is ON (last known before going offline)';
+        } else if (lastKnownState === 'OFF') {
+          statusText.textContent = 'Device is OFF (last known before going offline)';
+        } else {
+          statusText.textContent = 'Device Offline';
+        }
+      }
+    }
+
+    function performTogglePower() {
+      if (!mqttClient || !mqttClient.connected) {
+        alert('Not connected to MQTT server');
+        return;
+      }
+
+      if (!isOnline) {
+        alert('Cannot control device: it is currently offline.');
+        return;
+      }
+
+      if (lastKnownState === 'ON') {
+        mqttClient.publish(controlTopic, '0');
+      } else {
+        mqttClient.publish(controlTopic, '1');
+      }
+    }
+
+    function performToggleTheme() {
+      document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    function performGoBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'light') {
+        document.body.classList.add('light-mode');
+      }
+    }
+
+    window.onload = function() {
+      init();
+
+      document.getElementById('powerDisplay').addEventListener('click', withHaptic(performTogglePower));
+      document.getElementById('backButton').addEventListener('click', withHaptic(performGoBack));
+      document.getElementById('themeButton').addEventListener('click', withHaptic(performToggleTheme));
+    };
+
+    window.onbeforeunload = function() {
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.end();
+      }
+    };
+  </script>
+</body>
+</html>
