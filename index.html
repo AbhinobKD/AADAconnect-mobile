@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <title>AADAconnect - IoT Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+      overscroll-behavior: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .splash-container {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      overflow: hidden;
+    }
+
+    /* Technical grid background */
+    .tech-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridScroll 40s linear infinite;
+    }
+
+    @keyframes gridScroll {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(40px, 40px); }
+    }
+
+    /* Radial gradient overlay */
+    .radial-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 40%, rgba(14, 165, 233, 0.08), transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Network nodes effect */
+    .network-container {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .network-node {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: rgba(14, 165, 233, 0.6);
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.8);
+      animation: nodePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes nodePulse {
+      0%, 100% { 
+        opacity: 0.4; 
+        transform: scale(1);
+      }
+      50% { 
+        opacity: 1; 
+        transform: scale(1.5);
+      }
+    }
+
+    .network-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(14, 165, 233, 0.3), 
+        transparent);
+      transform-origin: left center;
+      animation: lineGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes lineGlow {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Content wrapper */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: max(env(safe-area-inset-top), 3rem) 2rem max(env(safe-area-inset-bottom), 3rem);
+    }
+
+    /* Top spacer */
+    .top-spacer {
+      flex: 0.3;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* IoT Logo */
+    .iot-logo {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin-bottom: 3rem;
+      animation: logoEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+      opacity: 0;
+    }
+
+    @keyframes logoEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-15deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    /* Central hub */
+    .central-hub {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #0ea5e9, #10b981);
+      border-radius: 50%;
+      box-shadow: 
+        0 0 30px rgba(14, 165, 233, 0.6),
+        0 0 60px rgba(16, 185, 129, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+      animation: hubPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes hubPulse {
+      0%, 100% { 
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 
+          0 0 30px rgba(14, 165, 233, 0.6),
+          0 0 60px rgba(16, 185, 129, 0.4);
+      }
+      50% { 
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 
+          0 0 40px rgba(14, 165, 233, 0.8),
+          0 0 80px rgba(16, 185, 129, 0.6);
+      }
+    }
+
+    .hub-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 28px;
+      height: 28px;
+      stroke: white;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Orbiting devices */
+    .orbit-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+
+    .orbit-1 {
+      width: 120px;
+      height: 120px;
+      animation: orbitRotate 8s linear infinite;
+    }
+
+    .orbit-2 {
+      width: 160px;
+      height: 160px;
+      animation: orbitRotate 12s linear infinite reverse;
+    }
+
+    @keyframes orbitRotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .orbit-device {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, #0ea5e9, #10b981);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.8);
+      animation: deviceGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes deviceGlow {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .device-1 { transform: translate(-50%, -50%) rotate(0deg) translateY(-60px); }
+    .device-2 { transform: translate(-50%, -50%) rotate(120deg) translateY(-60px); }
+    .device-3 { transform: translate(-50%, -50%) rotate(240deg) translateY(-60px); }
+    .device-4 { transform: translate(-50%, -50%) rotate(45deg) translateY(-80px); }
+    .device-5 { transform: translate(-50%, -50%) rotate(135deg) translateY(-80px); }
+    .device-6 { transform: translate(-50%, -50%) rotate(225deg) translateY(-80px); }
+    .device-7 { transform: translate(-50%, -50%) rotate(315deg) translateY(-80px); }
+
+    /* Connection lines */
+    .connection-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(to bottom, 
+        rgba(14, 165, 233, 0.6), 
+        transparent);
+      transform-origin: top center;
+      animation: lineFlicker 3s ease-in-out infinite;
+    }
+
+    @keyframes lineFlicker {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    .line-1 { transform: translate(-50%, -50%) rotate(0deg); }
+    .line-2 { transform: translate(-50%, -50%) rotate(120deg); }
+    .line-3 { transform: translate(-50%, -50%) rotate(240deg); }
+
+    /* Brand section */
+    .brand-section {
+      text-align: center;
+      animation: brandFadeIn 1s ease 0.6s forwards;
+      opacity: 0;
+    }
+
+    @keyframes brandFadeIn {
+      to { opacity: 1; }
+    }
+
+    .brand-name {
+      font-size: clamp(3.2rem, 12vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.8rem;
+    }
+
+    .brand-aada {
+      display: inline-block;
+      background: linear-gradient(135deg, #0ea5e9 0%, #00d4ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: textSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .brand-connect {
+      display: inline-block;
+      background: linear-gradient(135deg, #10b981 0%, #00ff88 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: textSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    @keyframes textSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .brand-tagline {
+      font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .tagline-divider {
+      width: 30px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(14, 165, 233, 0.5), transparent);
+    }
+
+    /* Bottom section */
+    .bottom-section {
+      width: 100%;
+      max-width: 340px;
+      animation: fadeSlideUp 1s ease 1.2s forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* System status */
+    .system-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .status-dots {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: dotPulse 1.5s ease-in-out infinite;
+    }
+
+    .status-dot:nth-child(1) { animation-delay: 0s; }
+    .status-dot:nth-child(2) { animation-delay: 0.3s; }
+    .status-dot:nth-child(3) { animation-delay: 0.6s; }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Progress container */
+    .progress-container {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .progress-percentage {
+      font-weight: 800;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #0ea5e9, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 3px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9 0%, #10b981 100%);
+      border-radius: 3px;
+      width: 0%;
+      position: relative;
+      animation: progressFill 3s cubic-bezier(0.4, 0, 0.2, 1) 1.8s forwards;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
+    }
+
+    @keyframes progressFill {
+      to { width: 100%; }
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent);
+      animation: progressShimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes progressShimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    /* Loading steps */
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      transition: color 0.3s ease;
+    }
+
+    .loading-step.active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .step-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .loading-step.active .step-icon {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.2);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .step-check {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s ease;
+    }
+
+    .loading-step.active .step-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Fade out */
+    .fade-out-transition {
+      animation: exitFade 0.8s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+
+    @keyframes exitFade {
+      to {
+        opacity: 0;
+        transform: scale(1.02);
+        filter: blur(10px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container" id="splashContainer">
+    <div class="tech-grid"></div>
+    <div class="radial-overlay"></div>
+    <div class="network-container" id="networkContainer"></div>
+
+    <div class="content-wrapper">
+      <div class="top-spacer"></div>
+
+      <div class="main-content">
+        <!-- IoT Logo -->
+        <div class="iot-logo">
+          <div class="connection-line line-1"></div>
+          <div class="connection-line line-2"></div>
+          <div class="connection-line line-3"></div>
+          
+          <div class="orbit-ring orbit-1">
+            <div class="orbit-device device-1"></div>
+            <div class="orbit-device device-2"></div>
+            <div class="orbit-device device-3"></div>
+          </div>
+          
+          <div class="orbit-ring orbit-2">
+            <div class="orbit-device device-4"></div>
+            <div class="orbit-device device-5"></div>
+            <div class="orbit-device device-6"></div>
+            <div class="orbit-device device-7"></div>
+          </div>
+
+          <div class="central-hub">
+            <svg class="hub-icon" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Brand -->
+        <div class="brand-section">
+          <h1 class="brand-name">
+            <span class="brand-aada">AADA</span><span class="brand-connect">connect</span>
+          </h1>
+          <div class="brand-tagline">
+            <div class="tagline-divider"></div>
+            <span>IoT Control Platform</span>
+            <div class="tagline-divider"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom section -->
+      <div class="bottom-section">
+        <div class="system-status">
+          <div class="status-dots">
+            <div class="status-dot"></div>
+            <div class="status-dot"></div>
+            <div class="status-dot"></div>
+          </div>
+          <span id="statusText">System Initialization</span>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-header">
+            <span>Loading Components</span>
+            <span class="progress-percentage" id="progressPercentage">0%</span>
+          </div>
+          
+          <div class="progress-track">
+            <div class="progress-bar"></div>
+          </div>
+
+          <div class="loading-steps">
+            <div class="loading-step" id="step1">
+              <div class="step-icon"><div class="step-check"></div></div>
+              <span>Network Configuration</span>
+            </div>
+            <div class="loading-step" id="step2">
+              <div class="step-icon"><div class="step-check"></div></div>
+              <span>Security Protocol</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Create network visualization
+    function createNetwork() {
+      const container = document.getElementById('networkContainer');
+      const nodeCount = 12;
+      const nodes = [];
+      
+      for (let i = 0; i < nodeCount; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        const x = 10 + Math.random() * 80;
+        const y = 10 + Math.random() * 80;
+        node.style.left = x + '%';
+        node.style.top = y + '%';
+        node.style.animationDelay = Math.random() * 3 + 's';
+        container.appendChild(node);
+        nodes.push({ x, y, element: node });
+      }
+
+      // Create connecting lines
+      for (let i = 0; i < nodeCount; i++) {
+        for (let j = i + 1; j < nodeCount; j++) {
+          const dx = nodes[j].x - nodes[i].x;
+          const dy = nodes[j].y - nodes[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 30) {
+            const line = document.createElement('div');
+            line.className = 'network-line';
+            line.style.left = nodes[i].x + '%';
+            line.style.top = nodes[i].y + '%';
+            line.style.width = distance + '%';
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.animationDelay = Math.random() * 4 + 's';
+            container.appendChild(line);
+          }
+        }
+      }
+    }
+
+    // Animate loading progress
+    function animateProgress() {
+      const percentageEl = document.getElementById('progressPercentage');
+      const statusEl = document.getElementById('statusText');
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      
+      let current = 0;
+      const duration = 3000;
+      const fps = 30;
+      const increment = 100 / (duration / (1000 / fps));
+      
+      const timer = setInterval(() => {
+        current += increment;
+        
+        // Update steps
+        if (current >= 35) step1.classList.add('active');
+        if (current >= 70) step2.classList.add('active');
+        
+        // Update status
+        if (current < 40) {
+          statusEl.textContent = 'System Initialization';
+        } else if (current < 75) {
+          statusEl.textContent = 'Establishing Connections';
+        } else {
+          statusEl.textContent = 'Ready';
+        }
+        
+        if (current >= 100) {
+          current = 100;
+          clearInterval(timer);
+          setTimeout(redirect, 500);
+        }
+        
+        percentageEl.textContent = Math.floor(current) + '%';
+      }, 1000 / fps);
+    }
+
+    // Redirect to login
+    function redirect() {
+      const container = document.getElementById('splashContainer');
+      container.classList.add('fade-out-transition');
+      
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 800);
+    }
+
+    // Prevent scrolling
+    document.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+
+    // Initialize
+    window.onload = function() {
+      createNetwork();
+      setTimeout(animateProgress, 1800);
+    };
+  </script>
+</body>
+</html>
