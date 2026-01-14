@@ -194,7 +194,7 @@
       display: grid;
       gap: 20px;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      padding-bottom: 80px;
+      padding-bottom: 120px; /* Enough space for FAB */
     }
 
     .device-card {
@@ -654,10 +654,10 @@
         width: 24px;
         height: 24px;
       }
-    }
 
-    .device-card:last-child {
-      margin-bottom: calc(env(safe-area-inset-bottom) + 100px);
+      .device-grid {
+        padding-bottom: 110px;
+      }
     }
   </style>
 </head>
@@ -968,18 +968,15 @@
         const rawMessage = message.toString().trim();
         const lowerMessage = rawMessage.toLowerCase();
 
-        // Ignore 'check_status' echo
         if (lowerMessage === 'check_status') {
           return;
         }
 
-        // Clear the timeout only for valid responses
         if (deviceTimeouts[deviceId]) {
           clearTimeout(deviceTimeouts[deviceId]);
           delete deviceTimeouts[deviceId];
         }
 
-        // Display the message if not 'offline', otherwise show 'Offline'
         const displayMessage = (lowerMessage === 'offline') ? 'offline' : rawMessage;
         deviceOnlineStatus[deviceId] = displayMessage;
 
@@ -1012,16 +1009,23 @@
 
         grid.innerHTML = '';
 
-        // Filter online and offline devices
-        let onlineDevices = devices.filter(d => deviceOnlineStatus[d.device_id] !== 'offline' && deviceOnlineStatus[d.device_id] !== 'Checking...');
-        let offlineDevices = devices.filter(d => deviceOnlineStatus[d.device_id] === 'offline' || deviceOnlineStatus[d.device_id] === 'Checking...');
+        // Separate online and offline/checking devices
+        const onlineDevices = devices.filter(d => 
+          deviceOnlineStatus[d.device_id] !== 'offline' && 
+          deviceOnlineStatus[d.device_id] !== 'Checking...'
+        );
+        
+        const offlineDevices = devices.filter(d => 
+          deviceOnlineStatus[d.device_id] === 'offline' || 
+          deviceOnlineStatus[d.device_id] === 'Checking...'
+        );
 
-        // Sort each group by rank
+        // Sort both groups by rank
         onlineDevices.sort((a, b) => a.device_rank - b.device_rank);
         offlineDevices.sort((a, b) => a.device_rank - b.device_rank);
 
-        // Combine: online first, then offline
-        let sortedDevices = [...onlineDevices, ...offlineDevices];
+        // Combine: online devices first, then offline
+        const sortedDevices = [...onlineDevices, ...offlineDevices];
 
         sortedDevices.forEach(device => {
           const displayMessage = deviceOnlineStatus[device.device_id] || 'offline';
@@ -1044,10 +1048,11 @@
               <span class="status-dot-small ${displayMessage === 'Checking...' ? 'checking' : (isOnline ? 'online' : 'offline')}"></span>
               <span>${displayMessage}</span>
             </div>`;
+          
           addHapticToElement(card, () => openDeviceControl(device.device_id));
           grid.appendChild(card);
         });
-      }, 100);
+      }, 80); // small debounce to prevent too frequent re-renders
     }
 
     function updateDeviceOnlineStatus(deviceId, message, isOnline) {
@@ -1065,8 +1070,7 @@
           textEl.textContent = message;
         }
       });
-      // Re-render to update sorting after status change
-      renderDevices();
+      renderDevices(); // Re-sort and re-render after status update
     }
 
     function checkAllDevicesStatus() {
