@@ -183,7 +183,8 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: env(safe-area-inset-top, 1rem) 1.25rem 1rem;
+      padding: env(safe-area-inset-top, 1rem) 1.25rem 1.1rem;   /* ← increased bottom padding a bit */
+      padding-top: calc(env(safe-area-inset-top, 1rem) + 0.35rem); /* ← the key change - more space from top */
       display: flex;
       justify-content: space-between;
       align-items: center;
