@@ -124,8 +124,8 @@
     }
 
     .icon-btn:active {
-      /*transform: scale(0.95);*/
-       transform: rotate(180deg);
+      transform: scale(0.95);
+       
     }
 
     .icon-btn svg {
@@ -134,6 +134,10 @@
       stroke: var(--text-primary);
       stroke-width: 1.8;
     }
+
+    #themeToggleBtn:active svg {
+  transform: rotate(180deg);
+ }
 
     .user-info {
       display: flex;
