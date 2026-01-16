@@ -183,8 +183,10 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: env(safe-area-inset-top, 1rem) 1.25rem 1.1rem;   /* ← increased bottom padding a bit */
-      padding-top: calc(env(safe-area-inset-top, 1rem) + 0.35rem); /* ← the key change - more space from top */
+      padding: 
+        calc(env(safe-area-inset-top, 1rem) + 0.45rem)  /* ← increased top space */
+        1.25rem 
+        1.15rem;                                        /* slightly more bottom space */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -233,20 +235,20 @@
     }
 
     .back-button {
-      padding: 0.75rem; 1.25rem;
+      padding: 0.9rem 1.4rem;           /* ← made slightly taller & wider */
     }
 
     .theme-toggle-btn {
-      width: 48px;
-      height: 48px;
+      width: 52px;                      /* ← slightly larger */
+      height: 52px;
       padding: 0;
       justify-content: center;
-      border-radius: 14px;
+      border-radius: 16px;
     }
 
     .theme-icon {
-      width: 22px;
-      height: 22px;
+      width: 24px;                      /* ← adjusted icon size for better proportion */
+      height: 24px;
       transition: transform var(--transition-smooth);
     }
 
@@ -265,6 +267,10 @@
       align-items: center;
       gap: 2rem;
     }
+
+    /* ────────────────────────────────────────────── */
+    /* The rest of your original styles remain unchanged */
+    /* ────────────────────────────────────────────── */
 
     .device-header {
       width: 100%;
@@ -314,7 +320,6 @@
       height: 280px;
     }
 
-    /* Ultra-Realistic Material Button */
     .power-ring {
       position: absolute;
       inset: -20px;
@@ -349,30 +354,22 @@
       cursor: pointer;
       transition: all var(--transition-smooth);
       
-      /* Ultra-realistic 3D material effect */
       background: linear-gradient(145deg, 
         rgba(255, 255, 255, 0.1) 0%,
         rgba(0, 0, 0, 0.3) 100%
       );
       
-      /* Multiple layered shadows for depth */
       box-shadow: 
-        /* Outer glow */
         0 0 80px var(--accent-glow),
-        /* Main shadow */
         0 30px 60px rgba(0, 0, 0, 0.6),
-        /* Mid shadow */
         0 15px 30px rgba(0, 0, 0, 0.4),
-        /* Inner shadow for depth */
         inset 0 -8px 20px rgba(0, 0, 0, 0.3),
         inset 0 8px 20px rgba(255, 255, 255, 0.05),
-        /* Edge highlight */
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
       
       border: 3px solid rgba(255, 255, 255, 0.1);
       overflow: hidden;
       
-      /* Metallic shine effect */
       background-image: 
         linear-gradient(145deg, 
           rgba(255, 255, 255, 0.15) 0%,
@@ -382,7 +379,6 @@
         );
     }
 
-    /* Glossy reflection overlay */
     .power-display::before {
       content: '';
       position: absolute;
@@ -401,7 +397,6 @@
       pointer-events: none;
     }
 
-    /* Ripple effect on click */
     .power-display::after {
       content: '';
       position: absolute;
@@ -453,7 +448,6 @@
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
-    /* ON State */
     .power-on {
       background: linear-gradient(145deg, var(--success-primary), var(--success-secondary));
       box-shadow: 
@@ -488,7 +482,6 @@
       50% { transform: scale(1.05); opacity: 0.9; }
     }
 
-    /* OFF State */
     .power-off {
       background: linear-gradient(145deg, var(--danger-primary), var(--danger-secondary));
       box-shadow: 
@@ -517,7 +510,6 @@
       color: #ffffff;
     }
 
-    /* PENDING State */
     .power-pending {
       background: linear-gradient(145deg, var(--warning-primary), var(--warning-secondary));
       box-shadow: 
@@ -562,7 +554,6 @@
       50% { opacity: 1; }
     }
 
-    /* OFFLINE State */
     .power-offline {
       background: linear-gradient(145deg, var(--neutral-primary), var(--neutral-secondary));
       box-shadow: 
@@ -598,7 +589,6 @@
       50% { opacity: 0.7; }
     }
 
-    /* Command Display Section */
     .command-display {
       width: 100%;
       padding: 1rem 1.5rem;
@@ -655,7 +645,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Status Message */
     .status-message {
       width: 100%;
       padding: 1.25rem 1.75rem;
@@ -695,7 +684,6 @@
       border-color: var(--border-subtle);
     }
 
-    /* Connection Status Bar */
     .connection-bar {
       position: fixed;
       bottom: 0;
@@ -833,7 +821,6 @@
         </div>
       </div>
       
-      <!-- Command Display - Shows pending command -->
       <div id="commandDisplay" class="command-display">
         <div class="command-label">
           <span class="spinner"></span>
@@ -865,7 +852,7 @@
     let controlTopic = null;
     let statusTopic = null;
     let statusTimeout = null;
-    let pendingCommand = null; // Track pending command
+    let pendingCommand = null;
 
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
@@ -1000,7 +987,6 @@
       const commandDisplay = document.getElementById('commandDisplay');
       const commandValue = document.getElementById('commandValue');
 
-      // Show pending UI
       powerDisplay.className = 'power-display power-pending';
       statusLabel.textContent = 'PENDING';
       
@@ -1027,7 +1013,6 @@
       isOnline = true;
 
       if (status === 'ON' || status === 'OFF') {
-        // Check if this matches our pending command
         if (pendingCommand !== null) {
           const expectedStatus = pendingCommand === '1' ? 'ON' : 'OFF';
           if (status === expectedStatus) {
@@ -1093,18 +1078,14 @@
         return;
       }
 
-      // Determine command
       const command = (currentStatus === 'ON') ? '0' : '1';
       pendingCommand = command;
 
-      // Show pending state immediately
       showPendingState(command);
 
-      // Send command
       mqttClient.publish(controlTopic, command);
       console.log('Command sent:', command);
 
-      // Start timeout to detect if device goes offline
       if (statusTimeout) clearTimeout(statusTimeout);
       statusTimeout = setTimeout(() => {
         console.log('No response from device - going offline');
