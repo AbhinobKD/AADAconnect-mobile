@@ -684,7 +684,7 @@
       border-color: var(--border-subtle);
     }
 
-    /* Connection Bar */
+    /* Connection Bar - Fixed at bottom */
     .connection-bar {
       position: fixed;
       bottom: 0;
@@ -698,7 +698,7 @@
       align-items: center;
       justify-content: center;
       gap: 1rem;
-      z-index: 200;
+      z-index: 100;
       box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
     }
 
@@ -755,13 +755,15 @@
       color: var(--text-primary);
     }
 
-    /* Collapsible Command Card - Fixed positioning */
-    .command-card-container {
+    /* CORRECTED Command Card - Sits BEHIND connection bar, pops out when needed */
+    .command-card-wrapper {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      z-index: 150;
+      z-index: 50; /* BELOW connection bar (which is z-index: 100) */
+      display: flex;
+      justify-content: center;
       pointer-events: none;
     }
 
@@ -769,8 +771,8 @@
       position: relative;
       width: calc(100% - 3rem);
       max-width: 420px;
-      margin: 0 auto;
-      padding: 1.25rem 1.75rem;
+      padding: 1.5rem 1.75rem 1.25rem;
+      padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 5.5rem); /* Space for connection bar */
       background: linear-gradient(135deg, var(--surface-elevated), var(--surface));
       backdrop-filter: blur(20px);
       border: 2px solid var(--warning-primary);
@@ -778,42 +780,34 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+      transition: transform var(--transition-smooth);
       box-shadow: 
         0 -8px 32px rgba(0, 188, 212, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
       pointer-events: auto;
       
-      /* Start hidden below connection bar */
-      transform: translateY(calc(100% + 100px));
-      opacity: 0;
+      /* Default: Hidden UNDER connection bar */
+      transform: translateY(100%);
     }
 
-    .command-display.visible {
-      opacity: 1;
-      /* Show above connection bar */
-      transform: translateY(calc(-100% - env(safe-area-inset-bottom, 1rem) - 5.5rem));
+    /* When expanded: Pops UP above connection bar */
+    .command-display.expanded {
+      transform: translateY(0);
     }
 
-    .command-display.collapsed {
-      /* Hidden below connection bar */
-      transform: translateY(calc(100% + 100px));
-      opacity: 0;
-    }
-
+    /* Toggle button on the card */
     .command-toggle-btn {
       position: absolute;
-      top: -48px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 48px;
-      height: 48px;
+      top: 12px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--warning-primary), var(--warning-secondary));
-      border: 3px solid var(--surface-elevated);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       box-shadow: 
-        0 4px 20px var(--warning-glow),
-        0 2px 8px rgba(0, 0, 0, 0.4);
+        0 4px 12px rgba(0, 188, 212, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -823,16 +817,17 @@
     }
 
     .command-toggle-btn:active {
-      transform: translateX(-50%) scale(0.95);
+      transform: scale(0.95);
     }
 
     .command-toggle-btn i {
       color: #ffffff;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       transition: transform var(--transition-smooth);
     }
 
-    .command-display.visible .command-toggle-btn i {
+    /* Rotate icon when expanded */
+    .command-display.expanded .command-toggle-btn i {
       transform: rotate(180deg);
     }
 
@@ -840,6 +835,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-top: 0.5rem;
     }
 
     .command-label {
@@ -862,6 +858,7 @@
       padding: 0.75rem 1rem;
       background: var(--glass-medium);
       border-radius: 12px;
+      margin-top: 0.5rem;
       animation: commandPulse 1.5s ease-in-out infinite;
     }
 
@@ -985,11 +982,11 @@
     </div>
   </div>
 
-  <!-- Command Card - Fixed at bottom -->
-  <div class="command-card-container">
-    <div id="commandDisplay" class="command-display collapsed">
+  <!-- Command Card - Sits BEHIND connection bar -->
+  <div class="command-card-wrapper">
+    <div id="commandDisplay" class="command-display">
       <button id="commandToggle" class="command-toggle-btn">
-        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-up"></i>
       </button>
       
       <div class="command-header">
@@ -1006,6 +1003,7 @@
     </div>
   </div>
 
+  <!-- Connection Bar - Always on top -->
   <div class="connection-bar">
     <div class="connection-indicator">
       <span id="mqttDot" class="status-dot disconnected-dot"></span>
@@ -1026,7 +1024,6 @@
     let pendingCommand = null;
     let pendingStartTime = null;
     let pendingTimerInterval = null;
-    let commandCardManuallyCollapsed = false;
 
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
@@ -1110,15 +1107,11 @@
 
       toggleBtn.addEventListener('click', function(e) {
         e.stopPropagation();
+        commandDisplay.classList.toggle('expanded');
         
-        if (commandDisplay.classList.contains('visible')) {
-          commandDisplay.classList.remove('visible');
-          commandDisplay.classList.add('collapsed');
-          commandCardManuallyCollapsed = true;
-        } else {
-          commandDisplay.classList.remove('collapsed');
-          commandDisplay.classList.add('visible');
-          commandCardManuallyCollapsed = false;
+        // Haptic feedback
+        if (shouldHapticAll()) {
+          hapticFeedback(30);
         }
       });
     }
@@ -1200,10 +1193,8 @@
       const commandText = command === '1' ? 'TURN ON' : 'TURN OFF';
       commandValue.textContent = commandText;
       
-      // Show command card automatically during pending
-      commandDisplay.classList.remove('collapsed');
-      commandDisplay.classList.add('visible');
-      commandCardManuallyCollapsed = false;
+      // AUTOMATICALLY pop up the card during pending
+      commandDisplay.classList.add('expanded');
       
       statusMessage.textContent = `Waiting for device response...`;
       statusMessage.className = 'status-message status-pending';
@@ -1225,14 +1216,14 @@
         setTimeout(() => {
           powerDisplay.classList.remove('success-animation');
         }, 500);
-      }
-      
-      // Auto-collapse after success, unless manually opened
-      if (!commandCardManuallyCollapsed) {
+        
+        // Auto-collapse after 2 seconds on success
         setTimeout(() => {
-          commandDisplay.classList.remove('visible');
-          commandDisplay.classList.add('collapsed');
+          commandDisplay.classList.remove('expanded');
         }, 2000);
+      } else {
+        // Immediately collapse on failure
+        commandDisplay.classList.remove('expanded');
       }
       
       pendingCommand = null;
