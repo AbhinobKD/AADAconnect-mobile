@@ -1060,40 +1060,9 @@
       statusTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${deviceId}/status`;
       ofTopic = `smartplug/${currentUser.hashed_email}/${currentUser.hashed_password}/${deviceId}/OF`;
 
-      // Try to load cached status for instant display
-      loadCachedStatus();
-      
       connectMQTT();
       loadTheme();
       createParticles();
-    }
-
-    function loadCachedStatus() {
-      try {
-        const cachedStr = sessionStorage.getItem('device_status_cache');
-        if (!cachedStr) return;
-        
-        const cached = JSON.parse(cachedStr);
-        const age = Date.now() - (cached.timestamp || 0);
-        
-        // Use cache if less than 10 seconds old
-        if (age < 10000) {
-          console.log('Using cached status:', cached.status, 'Age:', age + 'ms');
-          
-          if (cached.isOnline && (cached.status === 'ON' || cached.status === 'OFF')) {
-            // Display as online with cached status
-            displayOnlineStatus(cached.status);
-          } else if (cached.status && cached.status !== 'unknown' && cached.status !== 'Checking...') {
-            // Display as offline with last known state
-            lastKnownState = cached.status;
-            displayOfflineStatus();
-          }
-          
-          sessionStorage.removeItem('device_status_cache');
-        }
-      } catch (e) {
-        console.log('Error loading cached status:', e);
-      }
     }
 
     function connectMQTT() {
