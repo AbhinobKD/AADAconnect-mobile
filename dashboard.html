@@ -603,11 +603,10 @@
     .action-sheet-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.55);
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s ease;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
       z-index: 200;
     }
 
@@ -631,10 +630,13 @@
       transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
       box-shadow: var(--shadow-xl);
       will-change: transform;
+      transform: translateX(-50%) translateY(100%) translateZ(0);
+      -webkit-transform: translateX(-50%) translateY(100%) translateZ(0);
     }
 
     .action-sheet.show, .haptics-sheet.show, .sort-sheet.show {
-      transform: translateX(-50%) translateY(0);
+      transform: translateX(-50%) translateY(0) translateZ(0);
+      -webkit-transform: translateX(-50%) translateY(0) translateZ(0);
     }
 
     .action-sheet-handle {
@@ -1038,12 +1040,10 @@
       stroke-linecap: round;
       fill: none;
       filter: drop-shadow(0 1px 4px rgba(0,0,0,0.25));
-      transition: transform 0.3s ease;
     }
     .qc-power-btn.state-pending .qc-power-icon {
-      animation: qcRotate 1.3s linear infinite;
+      /* no rotation — ring pulse on the button is the pending indicator */
     }
-    @keyframes qcRotate { to { transform: rotate(360deg); } }
 
     /* Status label beneath button */
     .qc-status-label {
@@ -1057,6 +1057,83 @@
     .qc-status-label.state-off     { color: #38bdf8; }
     .qc-status-label.state-pending { color: #22d3ee; }
     .qc-status-label.state-unknown { color: var(--text-muted); }
+
+    /* Info button tooltip */
+    .info-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--text-muted);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      font-style: italic;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 10px;
+      transition: all 0.2s ease;
+      position: relative;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .info-btn:active {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      background: rgba(14, 165, 233, 0.08);
+    }
+
+    .info-tooltip {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: -8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px 13px;
+      width: 210px;
+      font-size: 12.5px;
+      font-weight: 500;
+      font-style: normal;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.96);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 300;
+      white-space: normal;
+    }
+
+    .info-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 14px;
+      border: 6px solid transparent;
+      border-top-color: var(--border-color);
+    }
+
+    .info-tooltip::before {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 15px;
+      border: 5px solid transparent;
+      border-top-color: var(--bg-primary);
+      z-index: 1;
+    }
+
+    .info-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
 
     /* Toggle Switch for Action Sheet */
     .toggle-switch {
@@ -1269,6 +1346,10 @@
           <div class="action-item-title">Quick Device Control</div>
           <div class="action-item-subtitle">Control devices directly from dashboard</div>
         </div>
+        <button class="info-btn" id="quickControlInfo" onclick="event.stopPropagation()">
+          i
+          <div class="info-tooltip" id="quickControlTooltip">Swipe any online device card to the left to reveal the power button.</div>
+        </button>
         <label class="toggle-switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="quickControlToggle" onchange="toggleQuickControl(this.checked)">
           <span class="toggle-slider"></span>
@@ -1434,6 +1515,11 @@
       // Restore quick control toggle state
       const qcEnabled = localStorage.getItem('quickControl') === 'true';
       document.getElementById('quickControlToggle').checked = qcEnabled;
+      // Pre-promote sheets to compositor layer so animation is instant on first open
+      ['actionSheet','hapticsSheet','sortSheet','actionSheetOverlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.willChange = 'transform, opacity';
+      });
     }
 
     // Theme
@@ -1475,6 +1561,26 @@
       addHapticToElement(document.getElementById('themeToggleItem'), toggleTheme);
       addHapticToElement(document.getElementById('hapticsItem'), showHapticsSheet);
       addHapticToElement(document.getElementById('logoutItem'), logout);
+
+      // Info button — show tooltip on hold, hide on release
+      const infoBtn     = document.getElementById('quickControlInfo');
+      const infoTooltip = document.getElementById('quickControlTooltip');
+      let holdTimer = null;
+
+      const showTooltip = () => {
+        infoTooltip.classList.add('visible');
+      };
+      const hideTooltip = () => {
+        clearTimeout(holdTimer);
+        infoTooltip.classList.remove('visible');
+      };
+
+      infoBtn.addEventListener('mousedown',  () => { holdTimer = setTimeout(showTooltip, 300); });
+      infoBtn.addEventListener('touchstart', (e) => { e.preventDefault(); holdTimer = setTimeout(showTooltip, 300); }, { passive: false });
+      infoBtn.addEventListener('mouseup',    hideTooltip);
+      infoBtn.addEventListener('mouseleave', hideTooltip);
+      infoBtn.addEventListener('touchend',   hideTooltip);
+      infoBtn.addEventListener('touchcancel',hideTooltip);
 
       // Haptics
       document.getElementById('hapticsIntensity').addEventListener('input', function(e) {
@@ -1542,8 +1648,15 @@
 
     // Action Sheets
     function showActionSheet() {
-      document.getElementById('actionSheetOverlay').classList.add('show');
-      document.getElementById('actionSheet').classList.add('show');
+      const overlay = document.getElementById('actionSheetOverlay');
+      const sheet   = document.getElementById('actionSheet');
+      overlay.style.display = 'block';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.classList.add('show');
+          sheet.classList.add('show');
+        });
+      });
     }
 
     function hideActionSheet() {
@@ -1553,10 +1666,17 @@
 
     function showHapticsSheet() {
       hideActionSheet();
-      document.getElementById('actionSheetOverlay').classList.add('show');
-      document.getElementById('hapticsSheet').classList.add('show');
+      const overlay = document.getElementById('actionSheetOverlay');
+      const sheet   = document.getElementById('hapticsSheet');
+      overlay.style.display = 'block';
       loadHapticsSettings();
       updateIntensityDisplay();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.classList.add('show');
+          sheet.classList.add('show');
+        });
+      });
     }
 
     function hideHapticsSheet() {
@@ -1565,12 +1685,17 @@
     }
 
     function showSortSheet() {
-      document.getElementById('actionSheetOverlay').classList.add('show');
-      document.getElementById('sortSheet').classList.add('show');
-      
-      // Update active state
+      const overlay = document.getElementById('actionSheetOverlay');
+      const sheet   = document.getElementById('sortSheet');
+      overlay.style.display = 'block';
       document.querySelectorAll('.sort-option').forEach(o => o.classList.remove('active'));
       document.querySelector(`.sort-option[data-sort="${currentSortBy}"]`).classList.add('active');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.classList.add('show');
+          sheet.classList.add('show');
+        });
+      });
     }
 
     function hideSortSheet() {
